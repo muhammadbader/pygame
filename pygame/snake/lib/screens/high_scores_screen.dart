@@ -118,30 +118,32 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
             Icon(
               Icons.stars_rounded,
               color: const Color(0xFFD4AF37).withOpacity(0.8),
-              size: 20,
+              size: 18,
             ),
-            const SizedBox(width: 10),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [
-                  Color(0xFFFFD700),
-                  Color(0xFFD4AF37),
-                ],
-              ).createShader(bounds),
-              child: const Text(
-                'HALL OF LEGENDS',
-                style: TextStyle(
-                  color: Colors.white,
-                  letterSpacing: 3,
-                  fontWeight: FontWeight.bold,
+            const SizedBox(width: 8),
+            Flexible(
+              child: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFFFFD700),
+                    Color(0xFFD4AF37),
+                  ],
+                ).createShader(bounds),
+                child: const Text(
+                  'HALL OF LEGENDS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Icon(
               Icons.stars_rounded,
               color: const Color(0xFFD4AF37).withOpacity(0.8),
-              size: 20,
+              size: 18,
             ),
           ],
         ),
