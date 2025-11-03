@@ -79,8 +79,8 @@ class _MenuScreenState extends State<MenuScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF000000),
-              Color(0xFF001a1a),
+              Color(0xFF0D1B2A), // Deep midnight blue
+              Color(0xFF1A237E), // Rich indigo
             ],
           ),
         ),
@@ -141,98 +141,210 @@ class _MenuScreenState extends State<MenuScreen>
   Widget _buildTitle() {
     return Column(
       children: [
-        // Snake emoji/icon
+        // Arabian ornamental icon with 8-pointed star
         Container(
-          width: 100,
-          height: 100,
+          width: 120,
+          height: 120,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF00FFFF).withOpacity(0.1),
+            gradient: RadialGradient(
+              colors: [
+                const Color(0xFFD4AF37).withOpacity(0.2), // Rich gold
+                const Color(0xFF00695C).withOpacity(0.1), // Emerald
+              ],
+            ),
             border: Border.all(
-              color: const Color(0xFF00FFFF),
+              color: const Color(0xFFD4AF37), // Rich gold
               width: 3,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF00FFFF).withOpacity(0.5),
+                color: const Color(0xFFD4AF37).withOpacity(0.5),
                 blurRadius: 30,
                 spreadRadius: 5,
+              ),
+              BoxShadow(
+                color: const Color(0xFF00BCD4).withOpacity(0.3), // Turquoise glow
+                blurRadius: 50,
+                spreadRadius: 10,
               ),
             ],
           ),
           child: const Icon(
-            Icons.grid_4x4_rounded,
-            size: 50,
-            color: Color(0xFF00FFFF),
+            Icons.stars_rounded, // 8-pointed star representing Islamic art
+            size: 60,
+            color: Color(0xFFD4AF37), // Rich gold
           ),
         ),
-        const SizedBox(height: 30),
-        // Title text
+        const SizedBox(height: 35),
+        // Title text with Arabian aesthetic
         ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
             colors: [
-              Color(0xFF00FFFF),
-              Color(0xFF00CCCC),
+              Color(0xFFFFD700), // Golden
+              Color(0xFFD4AF37), // Rich gold
+              Color(0xFF00BCD4), // Turquoise accent
             ],
+            stops: [0.0, 0.6, 1.0],
           ).createShader(bounds),
           child: const Text(
-            'SNAKE',
+            'DESERT SERPENT',
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 72,
+              fontSize: 58,
               fontWeight: FontWeight.bold,
               color: Colors.white,
-              letterSpacing: 8,
+              letterSpacing: 6,
+              height: 1.1,
               shadows: [
                 Shadow(
-                  color: Color(0xFF00FFFF),
-                  blurRadius: 20,
+                  color: Color(0xFFD4AF37),
+                  blurRadius: 25,
+                ),
+                Shadow(
+                  color: Color(0xFF00BCD4),
+                  blurRadius: 40,
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        Text(
-          'RETRO EDITION',
-          style: TextStyle(
-            fontSize: 14,
-            color: const Color(0xFF00FFFF).withOpacity(0.6),
-            letterSpacing: 4,
+        const SizedBox(height: 12),
+        // Ornamental divider
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildOrnamentalDivider(),
+            const SizedBox(width: 15),
+            Icon(
+              Icons.circle,
+              size: 6,
+              color: const Color(0xFFD4AF37).withOpacity(0.6),
+            ),
+            const SizedBox(width: 15),
+            _buildOrnamentalDivider(),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Subtitle with Arabian theme
+        ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [
+              Color(0xFF00BCD4), // Turquoise
+              Color(0xFF00695C), // Emerald
+            ],
+          ).createShader(bounds),
+          child: const Text(
+            'ARABIAN JOURNEY',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 5,
+            ),
           ),
         ),
       ],
     );
   }
 
+  Widget _buildOrnamentalDivider() {
+    return Container(
+      width: 40,
+      height: 2,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0x00D4AF37),
+            Color(0xFFD4AF37),
+            Color(0x00D4AF37),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD4AF37).withOpacity(0.5),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHighScoreDisplay() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 18),
       decoration: BoxDecoration(
         border: Border.all(
-          color: const Color(0xFFFF00FF).withOpacity(0.5),
-          width: 2,
+          color: const Color(0xFFD4AF37).withOpacity(0.6), // Rich gold
+          width: 2.5,
         ),
-        borderRadius: BorderRadius.circular(10),
-        color: const Color(0xFFFF00FF).withOpacity(0.05),
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFD4AF37).withOpacity(0.08), // Gold glow
+            const Color(0xFF00695C).withOpacity(0.05), // Emerald tint
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD4AF37).withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Text(
-            'HIGH SCORE',
-            style: TextStyle(
-              fontSize: 12,
-              color: const Color(0xFFFF00FF).withOpacity(0.7),
-              letterSpacing: 2,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.emoji_events_rounded,
+                size: 16,
+                color: const Color(0xFFFFD700).withOpacity(0.8),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'BEST SCORE',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: const Color(0xFFD4AF37).withOpacity(0.9),
+                  letterSpacing: 3,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.emoji_events_rounded,
+                size: 16,
+                color: const Color(0xFFFFD700).withOpacity(0.8),
+              ),
+            ],
           ),
-          const SizedBox(height: 5),
-          Text(
-            _highScore.toString().padLeft(4, '0'),
-            style: const TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFF00FF),
-              fontFeatures: [FontFeature.tabularFigures()],
+          const SizedBox(height: 8),
+          ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: [
+                Color(0xFFFFD700), // Golden
+                Color(0xFFFFC107), // Amber
+              ],
+            ).createShader(bounds),
+            child: Text(
+              _highScore.toString().padLeft(4, '0'),
+              style: const TextStyle(
+                fontSize: 42,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontFeatures: [FontFeature.tabularFigures()],
+                shadows: [
+                  Shadow(
+                    color: Color(0xFFFFD700),
+                    blurRadius: 15,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -241,35 +353,74 @@ class _MenuScreenState extends State<MenuScreen>
   }
 
   Widget _buildMenuButton(String label, IconData icon, VoidCallback onPressed) {
-    return SizedBox(
-      width: 280,
-      height: 60,
+    return Container(
+      width: 300,
+      height: 65,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFFD4AF37).withOpacity(0.1), // Gold tint
+            const Color(0xFF00BCD4).withOpacity(0.05), // Turquoise tint
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD4AF37).withOpacity(0.3),
+            blurRadius: 15,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
-          foregroundColor: const Color(0xFF00FFFF),
+          foregroundColor: const Color(0xFFD4AF37), // Rich gold
           side: const BorderSide(
-            color: Color(0xFF00FFFF),
-            width: 2,
+            color: Color(0xFFD4AF37), // Rich gold border
+            width: 2.5,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(15),
           ),
           elevation: 0,
-          shadowColor: const Color(0xFF00FFFF),
+          shadowColor: const Color(0xFFD4AF37),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 28),
-            const SizedBox(width: 15),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFFFFD700), // Golden
+                  Color(0xFF00BCD4), // Turquoise
+                ],
+              ).createShader(bounds),
+              child: Icon(
+                icon,
+                size: 32,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 18),
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFFFFD700), // Golden
+                  Color(0xFFD4AF37), // Rich gold
+                ],
+              ).createShader(bounds),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 3,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
@@ -279,13 +430,49 @@ class _MenuScreenState extends State<MenuScreen>
   }
 
   Widget _buildFooter() {
-    return Text(
-      'Built with Flutter',
-      style: TextStyle(
-        fontSize: 12,
-        color: Colors.cyan.withOpacity(0.3),
-        letterSpacing: 1,
-      ),
+    return Column(
+      children: [
+        // Decorative ornament
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.star,
+              size: 8,
+              color: const Color(0xFFD4AF37).withOpacity(0.4),
+            ),
+            const SizedBox(width: 10),
+            Icon(
+              Icons.circle,
+              size: 4,
+              color: const Color(0xFF00BCD4).withOpacity(0.3),
+            ),
+            const SizedBox(width: 10),
+            Icon(
+              Icons.star,
+              size: 8,
+              color: const Color(0xFFD4AF37).withOpacity(0.4),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            colors: [
+              const Color(0xFFD4AF37).withOpacity(0.5),
+              const Color(0xFF00BCD4).withOpacity(0.4),
+            ],
+          ).createShader(bounds),
+          child: const Text(
+            'Built with Flutter',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white,
+              letterSpacing: 2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
