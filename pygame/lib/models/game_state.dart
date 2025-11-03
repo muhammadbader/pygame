@@ -1,0 +1,183 @@
+import 'dart:async';
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'direction.dart';
+import 'position.dart';
+
+/// Game state management
+class GameState extends ChangeNotifier {
+  // Grid configuration
+  static const int gridSize = 20;
+  static const int initialSpeed = 200; // milliseconds per tick
+  static const int minSpeed = 100;
+  static const int speedIncrement = 10;
+  static const int foodPerSpeedUp = 5;
+
+  // Game state
+  List<Position> snake = [];
+  Position? food;
+  Direction currentDirection = Direction.right;
+  Direction? nextDirection;
+  int score = 0;
+  int foodEaten = 0;
+  bool isGameOver = false;
+  bool isPaused = false;
+  Timer? _gameTimer;
+  int currentSpeed = initialSpeed;
+
+  final Random _random = Random();
+
+  /// Initialize a new game
+  void initGame() {
+    // Initialize snake at center with 3 segments
+    final center = gridSize ~/ 2;
+    snake = [
+      Position(center, center),
+      Position(center - 1, center),
+      Position(center - 2, center),
+    ];
+
+    currentDirection = Direction.right;
+    nextDirection = null;
+    score = 0;
+    foodEaten = 0;
+    isGameOver = false;
+    isPaused = false;
+    currentSpeed = initialSpeed;
+
+    _spawnFood();
+    notifyListeners();
+  }
+
+  /// Start the game loop
+  void startGame() {
+    _gameTimer?.cancel();
+    _gameTimer = Timer.periodic(Duration(milliseconds: currentSpeed), (_) {
+      if (!isPaused && !isGameOver) {
+        _tick();
+      }
+    });
+  }
+
+  /// Pause/Resume the game
+  void togglePause() {
+    isPaused = !isPaused;
+    notifyListeners();
+  }
+
+  /// Change snake direction (with 180° prevention)
+  void changeDirection(Direction newDirection) {
+    if (!currentDirection.isOpposite(newDirection)) {
+      nextDirection = newDirection;
+    }
+  }
+
+  /// Game tick - main game loop
+  void _tick() {
+    // Apply queued direction change
+    if (nextDirection != null) {
+      currentDirection = nextDirection!;
+      nextDirection = null;
+    }
+
+    // Calculate new head position
+    final head = snake.first;
+    Position newHead;
+
+    switch (currentDirection) {
+      case Direction.up:
+        newHead = Position(head.x, head.y - 1);
+        break;
+      case Direction.down:
+        newHead = Position(head.x, head.y + 1);
+        break;
+      case Direction.left:
+        newHead = Position(head.x - 1, head.y);
+        break;
+      case Direction.right:
+        newHead = Position(head.x + 1, head.y);
+        break;
+    }
+
+    // Check wall collision
+    if (newHead.x < 0 ||
+        newHead.x >= gridSize ||
+        newHead.y < 0 ||
+        newHead.y >= gridSize) {
+      _gameOver();
+      return;
+    }
+
+    // Check self collision
+    if (snake.contains(newHead)) {
+      _gameOver();
+      return;
+    }
+
+    // Move snake
+    snake.insert(0, newHead);
+
+    // Check food collision
+    if (newHead == food) {
+      _eatFood();
+    } else {
+      // Remove tail if not eating
+      snake.removeLast();
+    }
+
+    notifyListeners();
+  }
+
+  /// Handle food consumption
+  void _eatFood() {
+    foodEaten++;
+    score += 10;
+
+    // Increase speed every foodPerSpeedUp foods
+    if (foodEaten % foodPerSpeedUp == 0 && currentSpeed > minSpeed) {
+      currentSpeed = max(minSpeed, currentSpeed - speedIncrement);
+      // Restart timer with new speed
+      startGame();
+    }
+
+    _spawnFood();
+  }
+
+  /// Spawn food at random empty position
+  void _spawnFood() {
+    final emptyCells = <Position>[];
+
+    for (int x = 0; x < gridSize; x++) {
+      for (int y = 0; y < gridSize; y++) {
+        final pos = Position(x, y);
+        if (!snake.contains(pos)) {
+          emptyCells.add(pos);
+        }
+      }
+    }
+
+    if (emptyCells.isNotEmpty) {
+      food = emptyCells[_random.nextInt(emptyCells.length)];
+    }
+  }
+
+  /// Handle game over
+  void _gameOver() {
+    isGameOver = true;
+    _gameTimer?.cancel();
+    notifyListeners();
+  }
+
+  /// Reset game
+  void reset() {
+    _gameTimer?.cancel();
+    initGame();
+    startGame();
+  }
+
+  @override
+  void dispose() {
+    _gameTimer?.cancel();
+    super.dispose();
+  }
+}
