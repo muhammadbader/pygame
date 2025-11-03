@@ -152,7 +152,8 @@ class _GameOverScreenState extends State<GameOverScreen>
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildGameOverTitle() {

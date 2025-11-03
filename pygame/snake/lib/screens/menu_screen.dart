@@ -136,7 +136,8 @@ class _MenuScreenState extends State<MenuScreen>
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildTitle() {
