@@ -86,14 +86,15 @@ class _MenuScreenState extends State<MenuScreen>
         ),
         child: SafeArea(
           child: Center(
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+            child: SingleChildScrollView(
+              child: AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                       // Title
                       ScaleTransition(
                         scale: _scaleAnimation,
@@ -135,7 +136,8 @@ class _MenuScreenState extends State<MenuScreen>
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildTitle() {

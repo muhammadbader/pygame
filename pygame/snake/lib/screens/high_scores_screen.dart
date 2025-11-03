@@ -118,30 +118,32 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
             Icon(
               Icons.stars_rounded,
               color: const Color(0xFFD4AF37).withOpacity(0.8),
-              size: 20,
+              size: 18,
             ),
-            const SizedBox(width: 10),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [
-                  Color(0xFFFFD700),
-                  Color(0xFFD4AF37),
-                ],
-              ).createShader(bounds),
-              child: const Text(
-                'HALL OF LEGENDS',
-                style: TextStyle(
-                  color: Colors.white,
-                  letterSpacing: 3,
-                  fontWeight: FontWeight.bold,
+            const SizedBox(width: 8),
+            Flexible(
+              child: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFFFFD700),
+                    Color(0xFFD4AF37),
+                  ],
+                ).createShader(bounds),
+                child: const Text(
+                  'HALL OF LEGENDS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             Icon(
               Icons.stars_rounded,
               color: const Color(0xFFD4AF37).withOpacity(0.8),
-              size: 20,
+              size: 18,
             ),
           ],
         ),
@@ -242,25 +244,27 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
                             size: 18,
                             color: const Color(0xFF00BCD4).withOpacity(0.8),
                           ),
-                          const SizedBox(width: 10),
-                          ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [
-                                Color(0xFF00BCD4),
-                                Color(0xFF00695C),
-                              ],
-                            ).createShader(bounds),
-                            child: const Text(
-                              'LEGENDARY RECORD',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                letterSpacing: 3.5,
-                                fontWeight: FontWeight.bold,
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [
+                                  Color(0xFF00BCD4),
+                                  Color(0xFF00695C),
+                                ],
+                              ).createShader(bounds),
+                              child: const Text(
+                                'LEGENDARY RECORD',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.white,
+                                  letterSpacing: 2.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           Icon(
                             Icons.emoji_events_rounded,
                             size: 18,
