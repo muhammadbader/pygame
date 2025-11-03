@@ -106,13 +106,14 @@ class _GameOverScreenState extends State<GameOverScreen>
         ),
         child: SafeArea(
           child: Center(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+            child: SingleChildScrollView(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                     // Game Over text
                     _buildGameOverTitle(),
 
