@@ -371,7 +371,7 @@ class _GameOverScreenState extends State<GameOverScreen>
 
   Widget _buildNewHighScoreBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
@@ -404,23 +404,25 @@ class _GameOverScreenState extends State<GameOverScreen>
           const Icon(
             Icons.stars_rounded,
             color: Color(0xFF1A237E),
-            size: 28,
+            size: 24,
           ),
-          const SizedBox(width: 12),
-          const Text(
-            'LEGENDARY ACHIEVEMENT!',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A237E),
-              letterSpacing: 2.5,
+          const SizedBox(width: 10),
+          const Flexible(
+            child: Text(
+              'LEGENDARY ACHIEVEMENT!',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A237E),
+                letterSpacing: 1.5,
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           const Icon(
             Icons.stars_rounded,
             color: Color(0xFF1A237E),
-            size: 28,
+            size: 24,
           ),
         ],
       ),
