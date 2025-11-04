@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'game_screen.dart';
 import 'high_scores_screen.dart';
 import '../utils/storage_service.dart';
+import '../utils/app_theme.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/particle_effects.dart';
 
-/// Main menu screen
+/// Main menu screen with modern minimalist design
 class MenuScreen extends StatefulWidget {
   const MenuScreen({Key? key}) : super(key: key);
 
@@ -12,36 +15,52 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _breathingController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  late Animation<double> _breathingAnimation;
   int? _highScore;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
+    // Main entrance animation
+    _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: AppTheme.verySlowAnimation,
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController,
+        parent: _fadeController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
+        parent: _fadeController,
+        curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
       ),
     );
 
-    _animationController.forward();
+    // Breathing animation for icon
+    _breathingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    )..repeat(reverse: true);
+
+    _breathingAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(
+        parent: _breathingController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _fadeController.forward();
     _loadHighScore();
   }
 
@@ -54,19 +73,49 @@ class _MenuScreenState extends State<MenuScreen>
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _fadeController.dispose();
+    _breathingController.dispose();
     super.dispose();
   }
 
   void _startGame() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const GameScreen()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const GameScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOut),
+              ),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: AppTheme.normalAnimation,
+      ),
     );
   }
 
   void _showHighScores() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const HighScoresScreen()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const HighScoresScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: AppTheme.normalAnimation,
+      ),
     );
   }
 
@@ -75,174 +124,196 @@ class _MenuScreenState extends State<MenuScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0D1B2A), // Deep midnight blue
-              Color(0xFF1A237E), // Rich indigo
-            ],
-          ),
+          gradient: AppTheme.backgroundGradient,
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                      // Title
-                      ScaleTransition(
-                        scale: _scaleAnimation,
-                        child: _buildTitle(),
-                      ),
-
-                      const SizedBox(height: 60),
-
-                      // High score display
-                      if (_highScore != null && _highScore! > 0)
-                        _buildHighScoreDisplay(),
-
-                      const SizedBox(height: 40),
-
-                      // Menu buttons
-                      _buildMenuButton(
-                        'PLAY',
-                        Icons.play_arrow_rounded,
-                        _startGame,
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      _buildMenuButton(
-                        'HIGH SCORES',
-                        Icons.emoji_events_rounded,
-                        _showHighScores,
-                      ),
-
-                      const SizedBox(height: 60),
-
-                      // Footer
-                      _buildFooter(),
-                    ],
-                  ),
-                );
-              },
+        child: Stack(
+          children: [
+            // Star constellation background
+            const Positioned.fill(
+              child: StarConstellation(
+                starCount: 150,
+                color: AppTheme.paleGold,
+              ),
             ),
-          ),
+
+            // Floating particles
+            const Positioned.fill(
+              child: ParticleBackground(
+                particleCount: 30,
+                colors: [
+                  AppTheme.neonGold,
+                  AppTheme.turquoise,
+                  AppTheme.desertGold,
+                ],
+                minSize: 2.0,
+                maxSize: 5.0,
+                speed: 0.8,
+              ),
+            ),
+
+            // Main content
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: AnimatedBuilder(
+                    animation: _fadeController,
+                    builder: (context, child) {
+                      return FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: ScaleTransition(
+                          scale: _scaleAnimation,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.spacingLarge,
+                              vertical: AppTheme.spacingXLarge,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Title
+                                _buildTitle(),
+
+                                const SizedBox(height: AppTheme.spacingXXLarge),
+
+                                // High score display
+                                if (_highScore != null && _highScore! > 0) ...[
+                                  _buildHighScoreDisplay(),
+                                  const SizedBox(height: AppTheme.spacingXLarge),
+                                ],
+
+                                // Menu buttons
+                                _buildMenuButton(
+                                  'PLAY',
+                                  Icons.play_arrow_rounded,
+                                  _startGame,
+                                ),
+
+                                const SizedBox(height: AppTheme.spacingMedium),
+
+                                _buildMenuButton(
+                                  'HIGH SCORES',
+                                  Icons.emoji_events_rounded,
+                                  _showHighScores,
+                                ),
+
+                                const SizedBox(height: AppTheme.spacingXXLarge),
+
+                                // Footer
+                                _buildFooter(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildTitle() {
     return Column(
       children: [
-        // Arabian ornamental icon with 8-pointed star
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                const Color(0xFFD4AF37).withOpacity(0.2), // Rich gold
-                const Color(0xFF00695C).withOpacity(0.1), // Emerald
-              ],
-            ),
-            border: Border.all(
-              color: const Color(0xFFD4AF37), // Rich gold
-              width: 3,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFD4AF37).withOpacity(0.5),
-                blurRadius: 30,
-                spreadRadius: 5,
+        // Mystical serpent icon with breathing animation
+        AnimatedBuilder(
+          animation: _breathingAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _breathingAnimation.value,
+              child: PulsingGlow(
+                glowColor: AppTheme.neonGold,
+                duration: const Duration(milliseconds: 2500),
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppTheme.goldenAmber.withOpacity(0.3),
+                        AppTheme.desertGold.withOpacity(0.2),
+                        AppTheme.deepMidnight.withOpacity(0.1),
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                  child: Center(
+                    child: ShaderMask(
+                      shaderCallback: (bounds) => AppTheme.mysticalGradient.createShader(bounds),
+                      child: const Icon(
+                        Icons.stars_rounded,
+                        size: 70,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              BoxShadow(
-                color: const Color(0xFF00BCD4).withOpacity(0.3), // Turquoise glow
-                blurRadius: 50,
-                spreadRadius: 10,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.stars_rounded, // 8-pointed star representing Islamic art
-            size: 60,
-            color: Color(0xFFD4AF37), // Rich gold
-          ),
+            );
+          },
         ),
-        const SizedBox(height: 35),
-        // Title text with Arabian aesthetic
+        const SizedBox(height: AppTheme.spacingXLarge),
+
+        // Title text with modern typography
         ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [
-              Color(0xFFFFD700), // Golden
-              Color(0xFFD4AF37), // Rich gold
-              Color(0xFF00BCD4), // Turquoise accent
-            ],
-            stops: [0.0, 0.6, 1.0],
-          ).createShader(bounds),
-          child: const Text(
+          shaderCallback: (bounds) => AppTheme.richGoldGradient.createShader(bounds),
+          child: Text(
             'DESERT SERPENT',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 58,
-              fontWeight: FontWeight.bold,
+            style: AppTheme.displayLarge.copyWith(
+              fontSize: 52,
               color: Colors.white,
-              letterSpacing: 6,
-              height: 1.1,
               shadows: [
                 Shadow(
-                  color: Color(0xFFD4AF37),
-                  blurRadius: 25,
+                  color: AppTheme.goldenAmber.withOpacity(0.6),
+                  blurRadius: 30,
                 ),
                 Shadow(
-                  color: Color(0xFF00BCD4),
-                  blurRadius: 40,
+                  color: AppTheme.turquoise.withOpacity(0.4),
+                  blurRadius: 50,
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        // Ornamental divider
+        const SizedBox(height: AppTheme.spacingMedium),
+
+        // Modern ornamental divider
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildOrnamentalDivider(),
-            const SizedBox(width: 15),
-            Icon(
-              Icons.circle,
-              size: 6,
-              color: const Color(0xFFD4AF37).withOpacity(0.6),
+            _buildModernDivider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium),
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: AppTheme.goldGradient,
+                  boxShadow: AppTheme.goldGlow(intensity: 0.8),
+                ),
+              ),
             ),
-            const SizedBox(width: 15),
-            _buildOrnamentalDivider(),
+            _buildModernDivider(),
           ],
         ),
-        const SizedBox(height: 12),
-        // Subtitle with Arabian theme
+        const SizedBox(height: AppTheme.spacingMedium),
+
+        // Subtitle with elegant typography
         ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [
-              Color(0xFF00BCD4), // Turquoise
-              Color(0xFF00695C), // Emerald
-            ],
-          ).createShader(bounds),
-          child: const Text(
+          shaderCallback: (bounds) => AppTheme.turquoiseGradient.createShader(bounds),
+          child: Text(
             'ARABIAN JOURNEY',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+            style: AppTheme.labelLarge.copyWith(
+              fontSize: 15,
               color: Colors.white,
-              letterSpacing: 5,
+              letterSpacing: 6,
             ),
           ),
         ),
@@ -250,22 +321,22 @@ class _MenuScreenState extends State<MenuScreen>
     );
   }
 
-  Widget _buildOrnamentalDivider() {
+  Widget _buildModernDivider() {
     return Container(
-      width: 40,
+      width: 50,
       height: 2,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [
-            Color(0x00D4AF37),
-            Color(0xFFD4AF37),
-            Color(0x00D4AF37),
+            AppTheme.desertGold.withOpacity(0.0),
+            AppTheme.desertGold.withOpacity(0.8),
+            AppTheme.desertGold.withOpacity(0.0),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD4AF37).withOpacity(0.5),
-            blurRadius: 8,
+            color: AppTheme.desertGold.withOpacity(0.6),
+            blurRadius: 10,
           ),
         ],
       ),
@@ -273,77 +344,57 @@ class _MenuScreenState extends State<MenuScreen>
   }
 
   Widget _buildHighScoreDisplay() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 18),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: const Color(0xFFD4AF37).withOpacity(0.6), // Rich gold
-          width: 2.5,
-        ),
-        borderRadius: BorderRadius.circular(15),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFD4AF37).withOpacity(0.08), // Gold glow
-            const Color(0xFF00695C).withOpacity(0.05), // Emerald tint
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD4AF37).withOpacity(0.3),
-            blurRadius: 20,
-            spreadRadius: 2,
-          ),
-        ],
+    return GlowingGlassContainer(
+      width: 280,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingXLarge,
+        vertical: AppTheme.spacingLarge,
       ),
+      borderRadius: AppTheme.radiusLarge,
+      glowColor: AppTheme.goldenAmber,
+      glowIntensity: 0.8,
       child: Column(
         children: [
+          // Label
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.emoji_events_rounded,
-                size: 16,
-                color: const Color(0xFFFFD700).withOpacity(0.8),
+                size: 18,
+                color: AppTheme.neonGold.withOpacity(0.9),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppTheme.spacingSmall),
               Text(
-                'BEST SCORE',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: const Color(0xFFD4AF37).withOpacity(0.9),
-                  letterSpacing: 3,
-                  fontWeight: FontWeight.w600,
+                'LEGENDARY SCORE',
+                style: AppTheme.labelLarge.copyWith(
+                  color: AppTheme.desertGold,
+                  fontSize: 12,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppTheme.spacingSmall),
               Icon(
                 Icons.emoji_events_rounded,
-                size: 16,
-                color: const Color(0xFFFFD700).withOpacity(0.8),
+                size: 18,
+                color: AppTheme.neonGold.withOpacity(0.9),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppTheme.spacingMedium),
+
+          // Score value
           ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [
-                Color(0xFFFFD700), // Golden
-                Color(0xFFFFC107), // Amber
-              ],
-            ).createShader(bounds),
+            shaderCallback: (bounds) => AppTheme.richGoldGradient.createShader(bounds),
             child: Text(
               _highScore.toString().padLeft(4, '0'),
-              style: const TextStyle(
-                fontSize: 42,
-                fontWeight: FontWeight.bold,
+              style: AppTheme.displayMedium.copyWith(
+                fontSize: 48,
                 color: Colors.white,
-                fontFeatures: [FontFeature.tabularFigures()],
+                fontFeatures: const [FontFeature.tabularFigures()],
                 shadows: [
                   Shadow(
-                    color: Color(0xFFFFD700),
-                    blurRadius: 15,
+                    color: AppTheme.goldenAmber,
+                    blurRadius: 20,
                   ),
                 ],
               ),
@@ -355,77 +406,48 @@ class _MenuScreenState extends State<MenuScreen>
   }
 
   Widget _buildMenuButton(String label, IconData icon, VoidCallback onPressed) {
-    return Container(
+    return GlassContainer(
       width: 300,
-      height: 65,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFD4AF37).withOpacity(0.1), // Gold tint
-            const Color(0xFF00BCD4).withOpacity(0.05), // Turquoise tint
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD4AF37).withOpacity(0.3),
-            blurRadius: 15,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: const Color(0xFFD4AF37), // Rich gold
-          side: const BorderSide(
-            color: Color(0xFFD4AF37), // Rich gold border
-            width: 2.5,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          elevation: 0,
-          shadowColor: const Color(0xFFD4AF37),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [
-                  Color(0xFFFFD700), // Golden
-                  Color(0xFF00BCD4), // Turquoise
-                ],
-              ).createShader(bounds),
-              child: Icon(
-                icon,
-                size: 32,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 18),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [
-                  Color(0xFFFFD700), // Golden
-                  Color(0xFFD4AF37), // Rich gold
-                ],
-              ).createShader(bounds),
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 3,
-                  color: Colors.white,
+      height: 70,
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
+      borderRadius: AppTheme.radiusLarge,
+      borderColor: AppTheme.desertGold.withOpacity(0.4),
+      borderWidth: 2,
+      shadows: AppTheme.goldGlow(intensity: 0.6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+          splashColor: AppTheme.goldenAmber.withOpacity(0.2),
+          highlightColor: AppTheme.desertGold.withOpacity(0.1),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ShaderMask(
+                  shaderCallback: (bounds) => AppTheme.goldGradient.createShader(bounds),
+                  child: Icon(
+                    icon,
+                    size: 28,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
+                const SizedBox(width: AppTheme.spacingMedium),
+                ShaderMask(
+                  shaderCallback: (bounds) => AppTheme.richGoldGradient.createShader(bounds),
+                  child: Text(
+                    label,
+                    style: AppTheme.headlineMedium.copyWith(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -434,41 +456,62 @@ class _MenuScreenState extends State<MenuScreen>
   Widget _buildFooter() {
     return Column(
       children: [
-        // Decorative ornament
+        // Modern ornamental divider
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.star,
-              size: 8,
-              color: const Color(0xFFD4AF37).withOpacity(0.4),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.desertGold.withOpacity(0.4),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.desertGold.withOpacity(0.6),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 10),
-            Icon(
-              Icons.circle,
-              size: 4,
-              color: const Color(0xFF00BCD4).withOpacity(0.3),
+            const SizedBox(width: AppTheme.spacingMedium),
+            Container(
+              width: 3,
+              height: 3,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.turquoise.withOpacity(0.3),
+              ),
             ),
-            const SizedBox(width: 10),
-            Icon(
-              Icons.star,
-              size: 8,
-              color: const Color(0xFFD4AF37).withOpacity(0.4),
+            const SizedBox(width: AppTheme.spacingMedium),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.desertGold.withOpacity(0.4),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.desertGold.withOpacity(0.6),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppTheme.spacingMedium),
         ShaderMask(
           shaderCallback: (bounds) => LinearGradient(
             colors: [
-              const Color(0xFFD4AF37).withOpacity(0.5),
-              const Color(0xFF00BCD4).withOpacity(0.4),
+              AppTheme.desertGold.withOpacity(0.4),
+              AppTheme.turquoise.withOpacity(0.3),
             ],
           ).createShader(bounds),
-          child: const Text(
-            'Built with Flutter',
-            style: TextStyle(
-              fontSize: 12,
+          child: Text(
+            'A Journey Through the Sands',
+            style: AppTheme.bodyMedium.copyWith(
+              fontSize: 11,
               color: Colors.white,
               letterSpacing: 2,
             ),

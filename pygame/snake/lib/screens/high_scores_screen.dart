@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../utils/storage_service.dart';
+import '../utils/app_theme.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/particle_effects.dart';
 
-/// High scores screen
+/// High scores screen with iconic modern design
 class HighScoresScreen extends StatefulWidget {
   const HighScoresScreen({Key? key}) : super(key: key);
 
@@ -9,13 +12,35 @@ class HighScoresScreen extends StatefulWidget {
   State<HighScoresScreen> createState() => _HighScoresScreenState();
 }
 
-class _HighScoresScreenState extends State<HighScoresScreen> {
+class _HighScoresScreenState extends State<HighScoresScreen>
+    with SingleTickerProviderStateMixin {
   int? _highScore;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _loadHighScore();
+
+    // Pulse animation for trophy
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadHighScore() async {
@@ -28,32 +53,30 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
   Future<void> _clearHighScore() async {
     final confirm = await showDialog<bool>(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.7),
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A237E), // Rich indigo
+        backgroundColor: AppTheme.richIndigo,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(
-            color: Color(0xFFD4AF37), // Rich gold
+          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+          side: BorderSide(
+            color: AppTheme.desertGold.withOpacity(0.6),
             width: 2.5,
           ),
         ),
         title: ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [Color(0xFFFFD700), Color(0xFFD4AF37)],
-          ).createShader(bounds),
-          child: const Text(
+          shaderCallback: (bounds) => AppTheme.goldGradient.createShader(bounds),
+          child: Text(
             'Reset Legendary Score?',
-            style: TextStyle(
+            style: AppTheme.headlineMedium.copyWith(
               color: Colors.white,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
+              fontSize: 20,
             ),
           ),
         ),
         content: Text(
-          'This will erase your greatest achievement.',
-          style: TextStyle(
-            color: const Color(0xFF00BCD4).withOpacity(0.9),
+          'This will erase your greatest achievement from the sands of time.',
+          style: AppTheme.bodyMedium.copyWith(
+            color: AppTheme.turquoise.withOpacity(0.9),
             fontSize: 15,
           ),
         ),
@@ -61,13 +84,12 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF00BCD4),
+              foregroundColor: AppTheme.turquoise,
             ),
-            child: const Text(
+            child: Text(
               'KEEP IT',
-              style: TextStyle(
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.bold,
+              style: AppTheme.labelLarge.copyWith(
+                color: AppTheme.turquoise,
               ),
             ),
           ),
@@ -76,11 +98,10 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFFFF6B6B),
             ),
-            child: const Text(
+            child: Text(
               'RESET',
-              style: TextStyle(
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.bold,
+              style: AppTheme.labelLarge.copyWith(
+                color: const Color(0xFFFF6B6B),
               ),
             ),
           ),
@@ -97,17 +118,24 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xFFFFD700), Color(0xFF00BCD4)],
-            ).createShader(bounds),
-            child: const Icon(
-              Icons.arrow_back_rounded,
-              color: Colors.white,
+          icon: Container(
+            padding: const EdgeInsets.all(AppTheme.spacingSmall),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.glassLight,
+            ),
+            child: ShaderMask(
+              shaderCallback: (bounds) => AppTheme.mysticalGradient.createShader(bounds),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
           onPressed: () => Navigator.pop(context),
@@ -117,33 +145,27 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
           children: [
             Icon(
               Icons.stars_rounded,
-              color: const Color(0xFFD4AF37).withOpacity(0.8),
-              size: 18,
+              color: AppTheme.desertGold.withOpacity(0.9),
+              size: 20,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppTheme.spacingSmall),
             Flexible(
               child: ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [
-                    Color(0xFFFFD700),
-                    Color(0xFFD4AF37),
-                  ],
-                ).createShader(bounds),
-                child: const Text(
+                shaderCallback: (bounds) => AppTheme.richGoldGradient.createShader(bounds),
+                child: Text(
                   'HALL OF LEGENDS',
-                  style: TextStyle(
+                  style: AppTheme.headlineMedium.copyWith(
                     color: Colors.white,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppTheme.spacingSmall),
             Icon(
               Icons.stars_rounded,
-              color: const Color(0xFFD4AF37).withOpacity(0.8),
-              size: 18,
+              color: AppTheme.desertGold.withOpacity(0.9),
+              size: 20,
             ),
           ],
         ),
@@ -151,218 +173,213 @@ class _HighScoresScreenState extends State<HighScoresScreen> {
       ),
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0D1B2A), // Deep midnight blue
-              Color(0xFF1A237E), // Rich indigo
-            ],
-          ),
+          gradient: AppTheme.backgroundGradient,
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Arabian ornamental trophy icon
-              Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFFFFD700).withOpacity(0.2),
-                      const Color(0xFFD4AF37).withOpacity(0.1),
-                    ],
-                  ),
-                  border: Border.all(
-                    color: const Color(0xFFD4AF37), // Rich gold
-                    width: 3.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFFD700).withOpacity(0.5),
-                      blurRadius: 40,
-                      spreadRadius: 8,
-                    ),
-                    BoxShadow(
-                      color: const Color(0xFF00BCD4).withOpacity(0.3),
-                      blurRadius: 60,
-                      spreadRadius: 10,
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.stars_rounded,
-                  size: 70,
-                  color: const Color(0xFFFFD700),
-                  shadows: [
-                    Shadow(
-                      color: const Color(0xFFFFD700).withOpacity(0.8),
-                      blurRadius: 20,
-                    ),
-                  ],
-                ),
+        child: Stack(
+          children: [
+            // Star constellation background
+            const Positioned.fill(
+              child: StarConstellation(
+                starCount: 180,
+                color: AppTheme.paleGold,
               ),
+            ),
 
-              const SizedBox(height: 55),
+            // Floating particles
+            const Positioned.fill(
+              child: ParticleBackground(
+                particleCount: 25,
+                colors: [
+                  AppTheme.neonGold,
+                  AppTheme.turquoise,
+                  AppTheme.desertGold,
+                ],
+                minSize: 2.0,
+                maxSize: 4.0,
+                speed: 0.6,
+              ),
+            ),
 
-              // Arabian-themed high score display
-              if (_highScore != null && _highScore! > 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 45),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: const Color(0xFFD4AF37).withOpacity(0.6), // Rich gold
-                      width: 3,
-                    ),
-                    borderRadius: BorderRadius.circular(25),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFFD4AF37).withOpacity(0.12),
-                        const Color(0xFF00695C).withOpacity(0.08),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFD4AF37).withOpacity(0.4),
-                        blurRadius: 30,
-                        spreadRadius: 3,
-                      ),
-                    ],
+            // Main content
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLarge,
+                    vertical: AppTheme.spacingXXLarge,
                   ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.emoji_events_rounded,
-                            size: 18,
-                            color: const Color(0xFF00BCD4).withOpacity(0.8),
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: ShaderMask(
-                              shaderCallback: (bounds) => const LinearGradient(
-                                colors: [
-                                  Color(0xFF00BCD4),
-                                  Color(0xFF00695C),
-                                ],
-                              ).createShader(bounds),
-                              child: const Text(
-                                'LEGENDARY RECORD',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.white,
-                                  letterSpacing: 2.5,
-                                  fontWeight: FontWeight.bold,
+                      // Legendary trophy icon with pulse animation
+                      AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _pulseAnimation.value,
+                            child: PulsingGlow(
+                              glowColor: AppTheme.neonGold,
+                              duration: const Duration(milliseconds: 2000),
+                              child: Container(
+                                width: 160,
+                                height: 160,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      AppTheme.goldenAmber.withOpacity(0.3),
+                                      AppTheme.desertGold.withOpacity(0.2),
+                                      AppTheme.deepMidnight.withOpacity(0.1),
+                                    ],
+                                  ),
+                                ),
+                                child: Center(
+                                  child: ShaderMask(
+                                    shaderCallback: (bounds) => AppTheme.richGoldGradient.createShader(bounds),
+                                    child: const Icon(
+                                      Icons.emoji_events_rounded,
+                                      size: 80,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.emoji_events_rounded,
-                            size: 18,
-                            color: const Color(0xFF00BCD4).withOpacity(0.8),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                      const SizedBox(height: 20),
-                      ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [
-                            Color(0xFFFFD700),
-                            Color(0xFFFFC107),
-                          ],
-                        ).createShader(bounds),
-                        child: Text(
-                          _highScore.toString().padLeft(4, '0'),
-                          style: const TextStyle(
-                            fontSize: 80,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontFeatures: [FontFeature.tabularFigures()],
-                            shadows: [
-                              Shadow(
-                                color: Color(0xFFFFD700),
-                                blurRadius: 25,
+
+                      const SizedBox(height: AppTheme.spacingXXLarge),
+
+                      // High score display
+                      if (_highScore != null && _highScore! > 0)
+                        GlowingGlassContainer(
+                          width: 320,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spacingXXLarge,
+                            vertical: AppTheme.spacingXLarge,
+                          ),
+                          borderRadius: AppTheme.radiusXLarge,
+                          glowColor: AppTheme.goldenAmber,
+                          glowIntensity: 1.0,
+                          child: Column(
+                            children: [
+                              // Label
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.stars_rounded,
+                                    size: 20,
+                                    color: AppTheme.turquoise.withOpacity(0.9),
+                                  ),
+                                  const SizedBox(width: AppTheme.spacingSmall),
+                                  Flexible(
+                                    child: ShaderMask(
+                                      shaderCallback: (bounds) => AppTheme.emeraldGradient.createShader(bounds),
+                                      child: Text(
+                                        'LEGENDARY RECORD',
+                                        style: AppTheme.labelLarge.copyWith(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppTheme.spacingSmall),
+                                  Icon(
+                                    Icons.stars_rounded,
+                                    size: 20,
+                                    color: AppTheme.turquoise.withOpacity(0.9),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppTheme.spacingLarge),
+
+                              // Score value
+                              ShaderMask(
+                                shaderCallback: (bounds) => AppTheme.richGoldGradient.createShader(bounds),
+                                child: Text(
+                                  _highScore.toString().padLeft(4, '0'),
+                                  style: AppTheme.displayLarge.copyWith(
+                                    fontSize: 88,
+                                    color: Colors.white,
+                                    fontFeatures: const [FontFeature.tabularFigures()],
+                                    shadows: [
+                                      Shadow(
+                                        color: AppTheme.goldenAmber,
+                                        blurRadius: 30,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ],
                           ),
+                        )
+                      else
+                        ShaderMask(
+                          shaderCallback: (bounds) => AppTheme.emeraldGradient.createShader(bounds),
+                          child: Text(
+                            'No legend yet... Begin your journey',
+                            textAlign: TextAlign.center,
+                            style: AppTheme.bodyLarge.copyWith(
+                              color: Colors.white,
+                              letterSpacing: 2,
+                            ),
+                          ),
                         ),
-                      ),
+
+                      const SizedBox(height: AppTheme.spacingXXLarge),
+
+                      // Reset button
+                      if (_highScore != null && _highScore! > 0)
+                        GlassContainer(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spacingLarge,
+                            vertical: AppTheme.spacingMedium,
+                          ),
+                          borderRadius: AppTheme.radiusMedium,
+                          borderColor: const Color(0xFFFF6B6B).withOpacity(0.5),
+                          shadows: [
+                            BoxShadow(
+                              color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _clearHighScore,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.restart_alt_rounded,
+                                    color: Color(0xFFFF6B6B),
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: AppTheme.spacingSmall),
+                                  Text(
+                                    'Reset Legend',
+                                    style: AppTheme.labelLarge.copyWith(
+                                      color: const Color(0xFFFF6B6B),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
-                  ),
-                )
-              else
-                ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
-                    colors: [
-                      const Color(0xFF00BCD4).withOpacity(0.6),
-                      const Color(0xFFD4AF37).withOpacity(0.5),
-                    ],
-                  ).createShader(bounds),
-                  child: const Text(
-                    'No legend yet... Begin your journey',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.w500,
-                    ),
                   ),
                 ),
-
-              const SizedBox(height: 65),
-
-              // Arabian-styled clear button
-              if (_highScore != null && _highScore! > 0)
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                        blurRadius: 15,
-                      ),
-                    ],
-                  ),
-                  child: TextButton.icon(
-                    onPressed: _clearHighScore,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      backgroundColor: const Color(0xFF1A237E).withOpacity(0.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: const Color(0xFFFF6B6B).withOpacity(0.6),
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(
-                      Icons.restart_alt_rounded,
-                      color: Color(0xFFFF6B6B),
-                      size: 22,
-                    ),
-                    label: const Text(
-                      'Reset Legend',
-                      style: TextStyle(
-                        color: Color(0xFFFF6B6B),
-                        letterSpacing: 2,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );

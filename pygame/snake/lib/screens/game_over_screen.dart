@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'game_screen.dart';
 import 'menu_screen.dart';
 import '../utils/storage_service.dart';
+import '../utils/app_theme.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/particle_effects.dart';
 
-/// Game over screen with score display and options
+/// Game over screen with dramatic presentation and modern design
 class GameOverScreen extends StatefulWidget {
   final int score;
   final int foodEaten;
@@ -19,10 +22,13 @@ class GameOverScreen extends StatefulWidget {
 }
 
 class _GameOverScreenState extends State<GameOverScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _badgeController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _badgeAnimation;
   int? _highScore;
   bool _isNewHighScore = false;
 
@@ -30,29 +36,50 @@ class _GameOverScreenState extends State<GameOverScreen>
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
+    // Main entrance animation
+    _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: AppTheme.slowAnimation,
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _animationController,
+        parent: _fadeController,
         curve: Curves.easeOut,
       ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+      begin: const Offset(0, 0.2),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
-        parent: _animationController,
+        parent: _fadeController,
         curve: Curves.easeOutCubic,
       ),
     );
 
-    _animationController.forward();
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _fadeController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+
+    // Badge pulse animation
+    _badgeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _badgeAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(
+        parent: _badgeController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _fadeController.forward();
     _checkHighScore();
   }
 
@@ -72,19 +99,49 @@ class _GameOverScreenState extends State<GameOverScreen>
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _fadeController.dispose();
+    _badgeController.dispose();
     super.dispose();
   }
 
   void _playAgain() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const GameScreen()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const GameScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOut),
+              ),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: AppTheme.normalAnimation,
+      ),
     );
   }
 
   void _goToMenu() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const MenuScreen()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const MenuScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, -0.1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+              child: child,
+            ),
+          );
+        },
+        transitionDuration: AppTheme.normalAnimation,
+      ),
     );
   }
 
@@ -93,152 +150,198 @@ class _GameOverScreenState extends State<GameOverScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0D1B2A), // Deep midnight blue
-              Color(0xFF1A237E), // Rich indigo
-              Color(0xFF0D1B2A), // Back to deep blue
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+          gradient: AppTheme.backgroundGradient,
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                    // Game Over text
-                    _buildGameOverTitle(),
+        child: Stack(
+          children: [
+            // Star constellation background
+            const Positioned.fill(
+              child: StarConstellation(
+                starCount: 120,
+                color: AppTheme.paleGold,
+              ),
+            ),
 
-                    const SizedBox(height: 60),
+            // Floating particles with slower movement
+            const Positioned.fill(
+              child: ParticleBackground(
+                particleCount: 20,
+                colors: [
+                  AppTheme.neonGold,
+                  AppTheme.turquoise,
+                  AppTheme.desertGold,
+                ],
+                minSize: 2.0,
+                maxSize: 4.0,
+                speed: 0.5,
+              ),
+            ),
 
-                    // Stats
-                    _buildStats(),
+            // Main content
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLarge,
+                    vertical: AppTheme.spacingXLarge,
+                  ),
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Game Over title
+                            _buildGameOverTitle(),
 
-                    const SizedBox(height: 40),
+                            const SizedBox(height: AppTheme.spacingXXLarge),
 
-                    // New high score badge
-                    if (_isNewHighScore) _buildNewHighScoreBadge(),
+                            // Stats
+                            _buildStats(),
 
-                    if (_isNewHighScore) const SizedBox(height: 40),
+                            const SizedBox(height: AppTheme.spacingXLarge),
 
-                    // Buttons
-                    _buildButton(
-                      'PLAY AGAIN',
-                      Icons.refresh_rounded,
-                      _playAgain,
-                      const Color(0xFF00FFFF),
+                            // New high score badge
+                            if (_isNewHighScore) ...[
+                              _buildNewHighScoreBadge(),
+                              const SizedBox(height: AppTheme.spacingXLarge),
+                            ],
+
+                            // Buttons
+                            _buildButton(
+                              'PLAY AGAIN',
+                              Icons.refresh_rounded,
+                              _playAgain,
+                            ),
+
+                            const SizedBox(height: AppTheme.spacingMedium),
+
+                            _buildButton(
+                              'MENU',
+                              Icons.home_rounded,
+                              _goToMenu,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-
-                    const SizedBox(height: 20),
-
-                    _buildButton(
-                      'MENU',
-                      Icons.home_rounded,
-                      _goToMenu,
-                      const Color(0xFF00FFFF),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildGameOverTitle() {
     return Column(
       children: [
-        // Ornamental icon
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFFD4AF37).withOpacity(0.5),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFD4AF37).withOpacity(0.3),
-                blurRadius: 20,
+        // Mystical crescent moon with glow
+        PulsingGlow(
+          glowColor: AppTheme.desertGold,
+          duration: const Duration(milliseconds: 2000),
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppTheme.desertGold.withOpacity(0.3),
+                  AppTheme.twilightPurple.withOpacity(0.2),
+                  AppTheme.deepMidnight.withOpacity(0.1),
+                ],
               ),
-            ],
-          ),
-          child: Icon(
-            Icons.nightlight_rounded,
-            size: 40,
-            color: const Color(0xFFD4AF37).withOpacity(0.8),
+            ),
+            child: Center(
+              child: ShaderMask(
+                shaderCallback: (bounds) => AppTheme.goldGradient.createShader(bounds),
+                child: const Icon(
+                  Icons.nightlight_rounded,
+                  size: 50,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 25),
+        const SizedBox(height: AppTheme.spacingXLarge),
+
+        // Title
         ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [
-              Color(0xFFD4AF37), // Rich gold
-              Color(0xFF00BCD4), // Turquoise
-              Color(0xFFD4AF37), // Rich gold
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ).createShader(bounds),
-          child: const Text(
+          shaderCallback: (bounds) => AppTheme.mysticalGradient.createShader(bounds),
+          child: Text(
             'JOURNEY ENDS',
-            style: TextStyle(
-              fontSize: 52,
-              fontWeight: FontWeight.bold,
+            style: AppTheme.displayLarge.copyWith(
+              fontSize: 48,
               color: Colors.white,
-              letterSpacing: 5,
               shadows: [
                 Shadow(
-                  color: Color(0xFFD4AF37),
-                  blurRadius: 25,
+                  color: AppTheme.desertGold.withOpacity(0.6),
+                  blurRadius: 30,
+                ),
+                Shadow(
+                  color: AppTheme.turquoise.withOpacity(0.4),
+                  blurRadius: 50,
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: AppTheme.spacingMedium),
+
+        // Subtitle
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.star,
-              size: 8,
-              color: const Color(0xFF00BCD4).withOpacity(0.6),
-            ),
-            const SizedBox(width: 10),
-            ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                colors: [
-                  const Color(0xFF00BCD4).withOpacity(0.8),
-                  const Color(0xFF00695C).withOpacity(0.8),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.turquoise.withOpacity(0.6),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.turquoise.withOpacity(0.8),
+                    blurRadius: 6,
+                  ),
                 ],
-              ).createShader(bounds),
-              child: const Text(
-                'The serpent rests',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                  letterSpacing: 3,
-                  fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: AppTheme.spacingSmall),
+            Flexible(
+              child: ShaderMask(
+                shaderCallback: (bounds) => AppTheme.emeraldGradient.createShader(bounds),
+                child: Text(
+                  'The serpent rests',
+                  textAlign: TextAlign.center,
+                  style: AppTheme.bodyLarge.copyWith(
+                    fontSize: 14,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 10),
-            Icon(
-              Icons.star,
-              size: 8,
-              color: const Color(0xFF00BCD4).withOpacity(0.6),
+            const SizedBox(width: AppTheme.spacingSmall),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.turquoise.withOpacity(0.6),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.turquoise.withOpacity(0.8),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -247,259 +350,146 @@ class _GameOverScreenState extends State<GameOverScreen>
   }
 
   Widget _buildStats() {
-    return Container(
-      width: 340,
-      padding: const EdgeInsets.all(35),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: const Color(0xFFD4AF37).withOpacity(0.5), // Rich gold
-          width: 2.5,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFD4AF37).withOpacity(0.1), // Gold tint
-            const Color(0xFF00695C).withOpacity(0.05), // Emerald tint
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD4AF37).withOpacity(0.3),
-            blurRadius: 25,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Final score
-          _buildStatRow(
-            'TREASURES COLLECTED',
-            widget.score.toString().padLeft(4, '0'),
-            Icons.star_rounded,
-            [const Color(0xFFFFD700), const Color(0xFFD4AF37)], // Golden gradient
-          ),
-
-          const SizedBox(height: 30),
-
-          // Food eaten
-          _buildStatRow(
-            'GEMS GATHERED',
-            widget.foodEaten.toString(),
-            Icons.diamond_rounded,
-            [const Color(0xFF00BCD4), const Color(0xFF00695C)], // Turquoise-Emerald
-          ),
-
-          const SizedBox(height: 30),
-
-          // High score
-          if (_highScore != null)
-            _buildStatRow(
-              'LEGENDARY SCORE',
-              _highScore.toString().padLeft(4, '0'),
-              Icons.emoji_events_rounded,
-              [const Color(0xFFFFC107), const Color(0xFFFFD700)], // Amber-Gold
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String label, String value, IconData icon, List<Color> gradientColors) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                colors: gradientColors,
-              ).createShader(bounds),
-              child: Icon(
-                icon,
-                size: 14,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 8),
-            ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                colors: [
-                  gradientColors[0].withOpacity(0.8),
-                  gradientColors[1].withOpacity(0.8),
-                ],
-              ).createShader(bounds),
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.white,
-                  letterSpacing: 2.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        // Final score
+        StatCard(
+          label: 'TREASURES',
+          value: widget.score.toString().padLeft(4, '0'),
+          icon: Icons.star_rounded,
+          gradient: AppTheme.goldGradient,
+          glowColor: AppTheme.goldenAmber,
         ),
-        const SizedBox(height: 10),
-        ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            colors: gradientColors,
-          ).createShader(bounds),
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontFeatures: [FontFeature.tabularFigures()],
-              shadows: [
-                Shadow(
-                  color: Color(0xFFD4AF37),
-                  blurRadius: 15,
-                ),
-              ],
-            ),
+
+        const SizedBox(height: AppTheme.spacingMedium),
+
+        // Food eaten
+        StatCard(
+          label: 'GEMS',
+          value: widget.foodEaten.toString().padLeft(2, '0'),
+          icon: Icons.diamond_rounded,
+          gradient: AppTheme.turquoiseGradient,
+          glowColor: AppTheme.turquoise,
+        ),
+
+        const SizedBox(height: AppTheme.spacingMedium),
+
+        // High score
+        if (_highScore != null)
+          StatCard(
+            label: 'LEGENDARY',
+            value: _highScore.toString().padLeft(4, '0'),
+            icon: Icons.emoji_events_rounded,
+            gradient: AppTheme.richGoldGradient,
+            glowColor: AppTheme.neonGold,
           ),
-        ),
       ],
     );
   }
 
   Widget _buildNewHighScoreBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFFFFD700), // Golden
-            Color(0xFFFFC107), // Amber
-            Color(0xFFFFD700), // Golden
-          ],
-        ),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: const Color(0xFFD4AF37).withOpacity(0.8),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFD700).withOpacity(0.6),
-            blurRadius: 30,
-            spreadRadius: 3,
-          ),
-          BoxShadow(
-            color: const Color(0xFFFFC107).withOpacity(0.4),
-            blurRadius: 50,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.stars_rounded,
-            color: Color(0xFF1A237E),
-            size: 24,
-          ),
-          const SizedBox(width: 10),
-          const Flexible(
-            child: Text(
-              'LEGENDARY ACHIEVEMENT!',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A237E),
-                letterSpacing: 1.5,
-              ),
+    return AnimatedBuilder(
+      animation: _badgeAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _badgeAnimation.value,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingLarge,
+              vertical: AppTheme.spacingMedium,
+            ),
+            decoration: BoxDecoration(
+              gradient: AppTheme.richGoldGradient,
+              borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.goldenAmber.withOpacity(0.6),
+                  blurRadius: 35,
+                  spreadRadius: 4,
+                ),
+                BoxShadow(
+                  color: AppTheme.neonGold.withOpacity(0.4),
+                  blurRadius: 60,
+                  spreadRadius: 8,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.stars_rounded,
+                  color: AppTheme.deepMidnight,
+                  size: 28,
+                ),
+                const SizedBox(width: AppTheme.spacingMedium),
+                Flexible(
+                  child: Text(
+                    'LEGENDARY ACHIEVEMENT!',
+                    style: AppTheme.headlineMedium.copyWith(
+                      fontSize: 16,
+                      color: AppTheme.deepMidnight,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacingMedium),
+                Icon(
+                  Icons.stars_rounded,
+                  color: AppTheme.deepMidnight,
+                  size: 28,
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 10),
-          const Icon(
-            Icons.stars_rounded,
-            color: Color(0xFF1A237E),
-            size: 24,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildButton(
-      String label, IconData icon, VoidCallback onPressed, Color color) {
-    return Container(
+  Widget _buildButton(String label, IconData icon, VoidCallback onPressed) {
+    return GlassContainer(
       width: 300,
-      height: 65,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFD4AF37).withOpacity(0.1),
-            const Color(0xFF00BCD4).withOpacity(0.05),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD4AF37).withOpacity(0.3),
-            blurRadius: 15,
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: const Color(0xFFD4AF37),
-          side: const BorderSide(
-            color: Color(0xFFD4AF37),
-            width: 2.5,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [
-                  Color(0xFFFFD700),
-                  Color(0xFF00BCD4),
-                ],
-              ).createShader(bounds),
-              child: Icon(
-                icon,
-                size: 30,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 18),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [
-                  Color(0xFFFFD700),
-                  Color(0xFFD4AF37),
-                ],
-              ).createShader(bounds),
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 3,
-                  color: Colors.white,
+      height: 70,
+      margin: EdgeInsets.zero,
+      padding: EdgeInsets.zero,
+      borderRadius: AppTheme.radiusLarge,
+      borderColor: AppTheme.desertGold.withOpacity(0.4),
+      borderWidth: 2,
+      shadows: AppTheme.goldGlow(intensity: 0.6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+          splashColor: AppTheme.goldenAmber.withOpacity(0.2),
+          highlightColor: AppTheme.desertGold.withOpacity(0.1),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ShaderMask(
+                  shaderCallback: (bounds) => AppTheme.goldGradient.createShader(bounds),
+                  child: Icon(
+                    icon,
+                    size: 28,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
+                const SizedBox(width: AppTheme.spacingMedium),
+                ShaderMask(
+                  shaderCallback: (bounds) => AppTheme.richGoldGradient.createShader(bounds),
+                  child: Text(
+                    label,
+                    style: AppTheme.headlineMedium.copyWith(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
