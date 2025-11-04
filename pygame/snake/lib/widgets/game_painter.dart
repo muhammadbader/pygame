@@ -628,7 +628,7 @@ class GamePainter extends CustomPainter {
       ..color = const Color(0xFFFFD700).withOpacity(0.2)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
-    canvas.drawEllipse(
+    canvas.drawOval(
       Rect.fromCenter(
         center: Offset(center.dx, food.y * cellSize + cellSize / 2 + cellSize * 0.4),
         width: cellSize * 0.6,
