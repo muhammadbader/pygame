@@ -329,7 +329,8 @@ class GamePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     // Diagonal pattern lines creating diamond shapes
-    for (int i = -GameState.gridSize; i < GameState.gridSize * 2; i++) {
+    final maxDimension = max(GameState.gridWidth, GameState.gridHeight);
+    for (int i = -maxDimension; i < maxDimension * 2; i++) {
       final x1 = i * cellSize * 2;
       final path = Path();
       path.moveTo(x1, 0);
@@ -372,8 +373,8 @@ class GamePainter extends CustomPainter {
     final shimmerTime = shimmerAnimation ?? 0.0;
 
     // Sand texture shimmer effect on grid cells
-    for (int x = 0; x < GameState.gridSize; x++) {
-      for (int y = 0; y < GameState.gridSize; y++) {
+    for (int x = 0; x < GameState.gridWidth; x++) {
+      for (int y = 0; y < GameState.gridHeight; y++) {
         final cellRect = Rect.fromLTWH(
           x * cellSize,
           y * cellSize,
@@ -414,7 +415,7 @@ class GamePainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     // Vertical lines
-    for (int i = 0; i <= GameState.gridSize; i++) {
+    for (int i = 0; i <= GameState.gridWidth; i++) {
       final x = i * cellSize;
       final isAccent = i % 5 == 0;
 
@@ -428,7 +429,7 @@ class GamePainter extends CustomPainter {
     }
 
     // Horizontal lines
-    for (int i = 0; i <= GameState.gridSize; i++) {
+    for (int i = 0; i <= GameState.gridHeight; i++) {
       final y = i * cellSize;
       final isAccent = i % 5 == 0;
 

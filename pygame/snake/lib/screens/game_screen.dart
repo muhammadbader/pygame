@@ -365,17 +365,24 @@ class _GameScreenState extends State<GameScreen>
   Widget _buildGameBoard() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate cell size to use full available space
-        final boardSize = min(constraints.maxWidth, constraints.maxHeight);
-        final cellSize = boardSize / GameState.gridSize;
+        // Calculate cell size to fill screen as rectangle
+        final cellWidth = constraints.maxWidth / GameState.gridWidth;
+        final cellHeight = constraints.maxHeight / GameState.gridHeight;
+
+        // Use the smaller cell size to keep cells square
+        final cellSize = min(cellWidth, cellHeight);
+
+        // Calculate actual board dimensions
+        final boardWidth = cellSize * GameState.gridWidth;
+        final boardHeight = cellSize * GameState.gridHeight;
 
         return Center(
           child: GestureDetector(
             onPanStart: _handlePanStart,
             onPanUpdate: _handlePanUpdate,
             child: SizedBox(
-              width: boardSize,
-              height: boardSize,
+              width: boardWidth,
+              height: boardHeight,
               child: AnimatedBuilder(
                 animation: Listenable.merge([
                   _foodAnimation,
