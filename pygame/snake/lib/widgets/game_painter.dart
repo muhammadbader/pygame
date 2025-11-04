@@ -3,6 +3,146 @@ import 'package:flutter/material.dart';
 import '../models/game_state.dart';
 import '../models/position.dart';
 
+/// Theme color palette for dynamic theme switching
+class ThemeColors {
+  final Color backgroundColor1;
+  final Color backgroundColor2;
+  final Color patternColor;
+  final Color gridColor;
+  final Color gridAccentColor;
+  final Color snakeHeadColor;
+  final Color snakeTailColor;
+  final Color snakeGlowColor;
+  final Color snakePatternColor;
+  final Color foodColor;
+  final Color foodAccentColor;
+  final Color foodGlowColor;
+  final Color starColor;
+  final Color moonColor;
+  final String themeName;
+
+  const ThemeColors({
+    required this.backgroundColor1,
+    required this.backgroundColor2,
+    required this.patternColor,
+    required this.gridColor,
+    required this.gridAccentColor,
+    required this.snakeHeadColor,
+    required this.snakeTailColor,
+    required this.snakeGlowColor,
+    required this.snakePatternColor,
+    required this.foodColor,
+    required this.foodAccentColor,
+    required this.foodGlowColor,
+    required this.starColor,
+    required this.moonColor,
+    required this.themeName,
+  });
+
+  // Theme 0: Midnight Desert (default - deep blues and gold)
+  static const midnight = ThemeColors(
+    backgroundColor1: Color(0xFF0D1B2A),
+    backgroundColor2: Color(0xFF1A237E),
+    patternColor: Color(0xFF1A237E),
+    gridColor: Color(0xFFD4AF37),
+    gridAccentColor: Color(0xFF00BCD4),
+    snakeHeadColor: Color(0xFF00695C),
+    snakeTailColor: Color(0xFF00BCD4),
+    snakeGlowColor: Color(0x8000BCD4),
+    snakePatternColor: Color(0xFFD4AF37),
+    foodColor: Color(0xFFFFD700),
+    foodAccentColor: Color(0xFFFFC107),
+    foodGlowColor: Color(0x80FFD700),
+    starColor: Color(0x40D4AF37),
+    moonColor: Color(0xFFFFFAF0),
+    themeName: 'Midnight Desert',
+  );
+
+  // Theme 1: Desert Sunset (warm oranges, purples, and gold)
+  static const sunset = ThemeColors(
+    backgroundColor1: Color(0xFF2D1B4E),
+    backgroundColor2: Color(0xFF4A1E3C),
+    patternColor: Color(0xFF3E2C5A),
+    gridColor: Color(0xFFFF8C42),
+    gridAccentColor: Color(0xFFFF6B9D),
+    snakeHeadColor: Color(0xFFFF6347),
+    snakeTailColor: Color(0xFFFF8C42),
+    snakeGlowColor: Color(0x80FF6347),
+    snakePatternColor: Color(0xFFFFD700),
+    foodColor: Color(0xFFFF6B9D),
+    foodAccentColor: Color(0xFFFF1493),
+    foodGlowColor: Color(0x80FF6B9D),
+    starColor: Color(0x40FF8C42),
+    moonColor: Color(0xFFFFB347),
+    themeName: 'Desert Sunset',
+  );
+
+  // Theme 2: Emerald Oasis (greens and jade)
+  static const oasis = ThemeColors(
+    backgroundColor1: Color(0xFF0A2E2E),
+    backgroundColor2: Color(0xFF1B4D3E),
+    patternColor: Color(0xFF2C5F4F),
+    gridColor: Color(0xFF50C878),
+    gridAccentColor: Color(0xFF40E0D0),
+    snakeHeadColor: Color(0xFF00D084),
+    snakeTailColor: Color(0xFF7FFFD4),
+    snakeGlowColor: Color(0x8000D084),
+    snakePatternColor: Color(0xFFFFD700),
+    foodColor: Color(0xFF7FFFD4),
+    foodAccentColor: Color(0xFF00CED1),
+    foodGlowColor: Color(0x807FFFD4),
+    starColor: Color(0x4050C878),
+    moonColor: Color(0xFFE0FFE0),
+    themeName: 'Emerald Oasis',
+  );
+
+  // Theme 3: Royal Purple (deep purples and gold)
+  static const royal = ThemeColors(
+    backgroundColor1: Color(0xFF1A0033),
+    backgroundColor2: Color(0xFF2E1A47),
+    patternColor: Color(0xFF4B0082),
+    gridColor: Color(0xFFFFD700),
+    gridAccentColor: Color(0xFFDA70D6),
+    snakeHeadColor: Color(0xFF9370DB),
+    snakeTailColor: Color(0xFFBA55D3),
+    snakeGlowColor: Color(0x809370DB),
+    snakePatternColor: Color(0xFFFFD700),
+    foodColor: Color(0xFFFFD700),
+    foodAccentColor: Color(0xFFFFA500),
+    foodGlowColor: Color(0x80FFD700),
+    starColor: Color(0x40FFD700),
+    moonColor: Color(0xFFFFFFE0),
+    themeName: 'Royal Purple',
+  );
+
+  // Theme 4: Sapphire Night (deep blues and silver)
+  static const sapphire = ThemeColors(
+    backgroundColor1: Color(0xFF000033),
+    backgroundColor2: Color(0xFF001A4D),
+    patternColor: Color(0xFF003366),
+    gridColor: Color(0xFFC0C0C0),
+    gridAccentColor: Color(0xFF4169E1),
+    snakeHeadColor: Color(0xFF0F52BA),
+    snakeTailColor: Color(0xFF6495ED),
+    snakeGlowColor: Color(0x800F52BA),
+    snakePatternColor: Color(0xFFE8E8E8),
+    foodColor: Color(0xFFE8E8E8),
+    foodAccentColor: Color(0xFFC0C0C0),
+    foodGlowColor: Color(0x80E8E8E8),
+    starColor: Color(0x40C0C0C0),
+    moonColor: Color(0xFFFFFFFF),
+    themeName: 'Sapphire Night',
+  );
+
+  static const List<ThemeColors> themes = [
+    midnight,
+    sunset,
+    oasis,
+    royal,
+    sapphire,
+  ];
+}
+
 /// Custom painter for rendering the snake game
 class GamePainter extends CustomPainter {
   final GameState gameState;
@@ -23,19 +163,8 @@ class GamePainter extends CustomPainter {
     this.collectionFrame,
   });
 
-  // Arabian/Islamic color palette
-  static const Color backgroundColor = Color(0xFF0D1B2A); // Deep midnight blue
-  static const Color patternColor = Color(0xFF1A237E); // Rich indigo for patterns
-  static const Color gridColor = Color(0xFFD4AF37); // Rich gold
-  static const Color gridAccentColor = Color(0xFF00BCD4); // Turquoise accent
-  static const Color snakeHeadColor = Color(0xFF00695C); // Emerald green
-  static const Color snakeTailColor = Color(0xFF00BCD4); // Turquoise
-  static const Color snakeGlowColor = Color(0x8000BCD4); // Turquoise glow
-  static const Color snakePatternColor = Color(0xFFD4AF37); // Gold pattern
-  static const Color foodColor = Color(0xFFFFD700); // Golden amber
-  static const Color foodAccentColor = Color(0xFFFFC107); // Amber
-  static const Color foodGlowColor = Color(0x80FFD700); // Gold glow
-  static const Color starColor = Color(0x40D4AF37); // Subtle gold stars
+  // Get current theme colors based on game state
+  ThemeColors get theme => ThemeColors.themes[gameState.currentTheme];
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -72,22 +201,6 @@ class GamePainter extends CustomPainter {
   void _drawDynamicBackground(Canvas canvas, Size size) {
     final bgTime = backgroundAnimation ?? 0.0;
 
-    // Dynamic gradient colors that shift based on score
-    final scoreProgress = (gameState.score / 500).clamp(0.0, 1.0);
-
-    // Base colors transition from deep indigo to warmer desert tones as score increases
-    final topColor = Color.lerp(
-      const Color(0xFF0D1B2A), // Deep midnight blue
-      const Color(0xFF1A1042), // Deep purple
-      scoreProgress * 0.3,
-    )!;
-
-    final bottomColor = Color.lerp(
-      const Color(0xFF1A237E), // Rich indigo
-      const Color(0xFF2D1B4E), // Deeper purple
-      scoreProgress * 0.3,
-    )!;
-
     // Animated gradient with subtle shift
     final gradientShift = sin(bgTime * 0.5) * 0.1;
 
@@ -95,7 +208,7 @@ class GamePainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment(0, -1.0 + gradientShift),
         end: Alignment(0, 1.0 - gradientShift),
-        colors: [topColor, bottomColor],
+        colors: [theme.backgroundColor1, theme.backgroundColor2],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
     canvas.drawRect(
@@ -110,7 +223,7 @@ class GamePainter extends CustomPainter {
 
     // Draw twinkling stars
     final starPaint = Paint()
-      ..color = const Color(0xFFD4AF37)
+      ..color = theme.starColor
       ..style = PaintingStyle.fill;
 
     final random = Random(42); // Fixed seed for consistent positions
@@ -120,13 +233,13 @@ class GamePainter extends CustomPainter {
       final twinkle = sin(bgTime * 2 + i * 0.5) * 0.5 + 0.5;
       final starSize = random.nextDouble() * 1.5 + 0.5;
 
-      starPaint.color = Color(0xFFD4AF37).withOpacity(0.3 + twinkle * 0.5);
+      starPaint.color = theme.starColor.withOpacity(0.3 + twinkle * 0.5);
       canvas.drawCircle(Offset(x, y), starSize, starPaint);
 
       // Add cross sparkle to some stars
       if (i % 4 == 0) {
         final sparklePaint = Paint()
-          ..color = Color(0xFFD4AF37).withOpacity(0.2 + twinkle * 0.3)
+          ..color = theme.starColor.withOpacity(0.2 + twinkle * 0.3)
           ..strokeWidth = 0.5
           ..style = PaintingStyle.stroke;
 
@@ -149,7 +262,7 @@ class GamePainter extends CustomPainter {
 
     // Moon glow
     final moonGlowPaint = Paint()
-      ..color = const Color(0xFFFFD700).withOpacity(0.15)
+      ..color = theme.moonColor.withOpacity(0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
     canvas.drawCircle(moonCenter, moonRadius * 2.5, moonGlowPaint);
 
@@ -157,15 +270,15 @@ class GamePainter extends CustomPainter {
     final moonPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFFFFFAF0),
-          const Color(0xFFFFD700).withOpacity(0.8),
+          theme.moonColor,
+          theme.moonColor.withOpacity(0.8),
         ],
       ).createShader(Rect.fromCircle(center: moonCenter, radius: moonRadius));
     canvas.drawCircle(moonCenter, moonRadius, moonPaint);
 
     // Crescent shadow
     final shadowPaint = Paint()
-      ..color = const Color(0xFF0D1B2A).withOpacity(0.7)
+      ..color = theme.backgroundColor1.withOpacity(0.7)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(
       Offset(moonCenter.dx + moonRadius * 0.4, moonCenter.dy - moonRadius * 0.2),
@@ -185,7 +298,7 @@ class GamePainter extends CustomPainter {
       final y = baseY + (bgTime * 5 + i * 3) % size.height;
 
       final dustPaint = Paint()
-        ..color = const Color(0xFFD4AF37).withOpacity(0.05 + sin(bgTime + i) * 0.05);
+        ..color = theme.gridColor.withOpacity(0.05 + sin(bgTime + i) * 0.05);
 
       canvas.drawCircle(Offset(x, y), 1.0, dustPaint);
     }
@@ -194,11 +307,11 @@ class GamePainter extends CustomPainter {
   /// Draw Islamic geometric patterns in background
   void _drawIslamicPatterns(Canvas canvas, Size size) {
     final patternPaint = Paint()
-      ..color = patternColor
+      ..color = theme.patternColor
       ..style = PaintingStyle.fill;
 
     final starPaint = Paint()
-      ..color = starColor
+      ..color = theme.starColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -212,7 +325,7 @@ class GamePainter extends CustomPainter {
 
     // Draw subtle geometric pattern overlay
     final overlayPaint = Paint()
-      ..color = patternColor.withOpacity(0.3)
+      ..color = theme.patternColor.withOpacity(0.3)
       ..style = PaintingStyle.fill;
 
     // Diagonal pattern lines creating diamond shapes
@@ -224,7 +337,7 @@ class GamePainter extends CustomPainter {
       canvas.drawPath(
         path,
         Paint()
-          ..color = patternColor.withOpacity(0.1)
+          ..color = theme.patternColor.withOpacity(0.1)
           ..strokeWidth = 0.3
           ..style = PaintingStyle.stroke,
       );
@@ -273,7 +386,7 @@ class GamePainter extends CustomPainter {
         final shimmerIntensity = (sin(shimmerPhase) * 0.5 + 0.5) * 0.03;
 
         final shimmerPaint = Paint()
-          ..color = const Color(0xFFD4AF37).withOpacity(shimmerIntensity)
+          ..color = theme.gridColor.withOpacity(shimmerIntensity)
           ..style = PaintingStyle.fill;
 
         canvas.drawRect(cellRect, shimmerPaint);
@@ -281,21 +394,21 @@ class GamePainter extends CustomPainter {
     }
 
     // Enhanced grid lines with glow
-    // Main grid lines in gold
+    // Main grid lines
     final mainGridPaint = Paint()
-      ..color = gridColor.withOpacity(0.35)
+      ..color = theme.gridColor.withOpacity(0.35)
       ..strokeWidth = 0.8
       ..style = PaintingStyle.stroke;
 
-    // Accent lines in turquoise (every 5th line) - more prominent
+    // Accent lines (every 5th line) - more prominent
     final accentGridPaint = Paint()
-      ..color = gridAccentColor.withOpacity(0.5)
+      ..color = theme.gridAccentColor.withOpacity(0.5)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
     // Grid line glow effect
     final glowPaint = Paint()
-      ..color = gridAccentColor.withOpacity(0.15)
+      ..color = theme.gridAccentColor.withOpacity(0.15)
       ..strokeWidth = 3.0
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3)
       ..style = PaintingStyle.stroke;
@@ -356,7 +469,7 @@ class GamePainter extends CustomPainter {
       final rippleOpacity = (1.0 - rippleProgress) * 0.3;
 
       final ripplePaint = Paint()
-        ..color = snakeHeadColor.withOpacity(rippleOpacity)
+        ..color = theme.snakeHeadColor.withOpacity(rippleOpacity)
         ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
 
@@ -367,7 +480,7 @@ class GamePainter extends CustomPainter {
   /// Draw decorative corner ornaments
   void _drawCornerOrnaments(Canvas canvas, Size size) {
     final ornamentPaint = Paint()
-      ..color = gridColor.withOpacity(0.5)
+      ..color = theme.gridColor.withOpacity(0.5)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
@@ -430,7 +543,7 @@ class GamePainter extends CustomPainter {
       final pulseIntensity = (sin(pulsePhase) * 0.5 + 0.5) * 0.2;
 
       final trailPaint = Paint()
-        ..color = snakeGlowColor.withOpacity(trailFade * (0.15 + pulseIntensity))
+        ..color = theme.snakeGlowColor.withOpacity(trailFade * (0.15 + pulseIntensity))
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
       canvas.drawCircle(center, trailRadius, trailPaint);
@@ -453,18 +566,18 @@ class GamePainter extends CustomPainter {
       // Enhanced gradient position with smoother color transition
       final gradientPosition = i / gameState.snake.length;
 
-      // Multi-color gradient: emerald -> jade -> turquoise
+      // Multi-color gradient: head -> middle -> tail
       Color segmentColor;
       if (gradientPosition < 0.5) {
         segmentColor = Color.lerp(
-          snakeHeadColor, // Emerald green
-          const Color(0xFF00897B), // Jade
+          theme.snakeHeadColor,
+          Color.lerp(theme.snakeHeadColor, theme.snakeTailColor, 0.5)!,
           gradientPosition * 2,
         )!;
       } else {
         segmentColor = Color.lerp(
-          const Color(0xFF00897B), // Jade
-          snakeTailColor, // Turquoise
+          Color.lerp(theme.snakeHeadColor, theme.snakeTailColor, 0.5)!,
+          theme.snakeTailColor,
           (gradientPosition - 0.5) * 2,
         )!;
       }
@@ -480,7 +593,7 @@ class GamePainter extends CustomPainter {
       // Outer glow with pulse
       final pulseAmount = sin(shimmerTime * 3 - i * 0.2) * 0.5 + 0.5;
       final outerGlowPaint = Paint()
-        ..color = snakeGlowColor.withOpacity(0.5 * (1 - gradientPosition) * (0.7 + pulseAmount * 0.3))
+        ..color = theme.snakeGlowColor.withOpacity(0.5 * (1 - gradientPosition) * (0.7 + pulseAmount * 0.3))
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
       canvas.drawRRect(
@@ -567,9 +680,9 @@ class GamePainter extends CustomPainter {
           highlightPaint,
         );
 
-        // Gold accent ring on head - animated
+        // Accent ring on head - animated
         final accentPaint = Paint()
-          ..color = snakePatternColor.withOpacity(0.7 + headPulse * 0.2)
+          ..color = theme.snakePatternColor.withOpacity(0.7 + headPulse * 0.2)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0;
 
@@ -577,7 +690,7 @@ class GamePainter extends CustomPainter {
 
         // Inner accent
         final innerAccentPaint = Paint()
-          ..color = const Color(0xFF00BCD4).withOpacity(0.5)
+          ..color = theme.gridAccentColor.withOpacity(0.5)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.0;
 
@@ -589,7 +702,7 @@ class GamePainter extends CustomPainter {
   /// Draw geometric pattern on snake segment
   void _drawSegmentPattern(Canvas canvas, Rect rect, double fadeAmount) {
     final patternPaint = Paint()
-      ..color = snakePatternColor.withOpacity(0.3 * (1 - fadeAmount))
+      ..color = theme.snakePatternColor.withOpacity(0.3 * (1 - fadeAmount))
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
@@ -625,7 +738,7 @@ class GamePainter extends CustomPainter {
 
     // Draw shadow/glow beneath to emphasize floating
     final shadowPaint = Paint()
-      ..color = const Color(0xFFFFD700).withOpacity(0.2)
+      ..color = theme.foodColor.withOpacity(0.2)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     canvas.drawOval(
@@ -640,23 +753,23 @@ class GamePainter extends CustomPainter {
     // Magnetic attraction effect to serpent
     _drawMagneticField(canvas, center, radius);
 
-    // Enhanced multi-layer golden glow
+    // Enhanced multi-layer glow
     final outerGlowPaint = Paint()
-      ..color = foodGlowColor.withOpacity(0.4 + pulseValue * 0.2)
+      ..color = theme.foodGlowColor.withOpacity(0.4 + pulseValue * 0.2)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
 
     canvas.drawCircle(center, radius * 3.0, outerGlowPaint);
 
     // Middle glow
     final middleGlowPaint = Paint()
-      ..color = foodGlowColor.withOpacity(0.6)
+      ..color = theme.foodGlowColor.withOpacity(0.6)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     canvas.drawCircle(center, radius * 1.8, middleGlowPaint);
 
     // Inner glow
     final innerGlowPaint = Paint()
-      ..color = const Color(0xFFFFD700).withOpacity(0.8)
+      ..color = theme.foodColor.withOpacity(0.8)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
     canvas.drawCircle(center, radius * 1.2, innerGlowPaint);
@@ -664,15 +777,15 @@ class GamePainter extends CustomPainter {
     // Draw ornamental frame around treasure (rotating)
     _drawTreasureFrame(canvas, center, radius * 1.8, pulseValue);
 
-    // Main golden treasure orb with enhanced gradient
+    // Main treasure orb with enhanced gradient
     final foodPaint = Paint()
       ..shader = RadialGradient(
         center: const Alignment(-0.3, -0.3),
         colors: [
           Colors.white,
-          const Color(0xFFFFE57F),
-          foodColor,
-          foodAccentColor,
+          Color.lerp(Colors.white, theme.foodColor, 0.5)!,
+          theme.foodColor,
+          theme.foodAccentColor,
         ],
         stops: const [0.0, 0.2, 0.6, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
@@ -732,7 +845,7 @@ class GamePainter extends CustomPainter {
 
       // Draw subtle energy lines
       final linePaint = Paint()
-        ..color = const Color(0xFFFFD700).withOpacity(strength * 0.15)
+        ..color = theme.foodColor.withOpacity(strength * 0.15)
         ..strokeWidth = 1.5
         ..style = PaintingStyle.stroke;
 
@@ -756,7 +869,7 @@ class GamePainter extends CustomPainter {
 
       // Draw pulsing connection points
       final connectionPaint = Paint()
-        ..color = const Color(0xFFFFD700).withOpacity(strength * 0.3);
+        ..color = theme.foodColor.withOpacity(strength * 0.3);
 
       canvas.drawCircle(treasurePos, treasureRadius * 1.3, connectionPaint);
     }
@@ -765,7 +878,7 @@ class GamePainter extends CustomPainter {
   /// Draw ornamental frame around treasure
   void _drawTreasureFrame(Canvas canvas, Offset center, double size, double animation) {
     final framePaint = Paint()
-      ..color = foodAccentColor.withOpacity(0.6 + animation * 0.2)
+      ..color = theme.foodAccentColor.withOpacity(0.6 + animation * 0.2)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
@@ -791,7 +904,7 @@ class GamePainter extends CustomPainter {
   /// Draw Islamic star on treasure
   void _drawTreasureStar(Canvas canvas, Offset center, double size, double animation) {
     final starPaint = Paint()
-      ..color = snakeHeadColor.withOpacity(0.4)
+      ..color = theme.snakeHeadColor.withOpacity(0.4)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
@@ -825,7 +938,7 @@ class GamePainter extends CustomPainter {
   /// Draw sparkle particles around treasure
   void _drawTreasureSparkles(Canvas canvas, Offset center, double animation, double baseRadius) {
     final sparklePaint = Paint()
-      ..color = foodColor.withOpacity(0.8)
+      ..color = theme.foodColor.withOpacity(0.8)
       ..style = PaintingStyle.fill;
 
     // Draw 6 sparkles rotating around the treasure
@@ -856,9 +969,9 @@ class GamePainter extends CustomPainter {
       canvas.drawCircle(sparklePos, sparkleSize * 0.3, sparkleHighlight);
     }
 
-    // Add subtle golden trail effect
+    // Add subtle trail effect
     final trailPaint = Paint()
-      ..color = foodAccentColor.withOpacity(0.2)
+      ..color = theme.foodAccentColor.withOpacity(0.2)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -880,9 +993,9 @@ class GamePainter extends CustomPainter {
     // Burst radius expands outward
     final burstRadius = cellSize * progress * 3;
 
-    // Golden burst wave
+    // Burst wave
     final burstPaint = Paint()
-      ..color = const Color(0xFFFFD700).withOpacity((1 - progress) * 0.6)
+      ..color = theme.foodColor.withOpacity((1 - progress) * 0.6)
       ..strokeWidth = 3.0 * (1 - progress * 0.5)
       ..style = PaintingStyle.stroke;
 
@@ -890,7 +1003,7 @@ class GamePainter extends CustomPainter {
 
     // Inner burst wave
     final innerBurstPaint = Paint()
-      ..color = const Color(0xFFFFD700).withOpacity((1 - progress) * 0.8)
+      ..color = theme.foodColor.withOpacity((1 - progress) * 0.8)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
@@ -898,12 +1011,12 @@ class GamePainter extends CustomPainter {
 
     // Expanding glow
     final glowPaint = Paint()
-      ..color = const Color(0xFFFFD700).withOpacity((1 - progress) * 0.4)
+      ..color = theme.foodColor.withOpacity((1 - progress) * 0.4)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
     canvas.drawCircle(center, burstRadius * 0.8, glowPaint);
 
-    // Sand-dust particles explosion
+    // Dust particles explosion
     final random = Random(42);
     for (int i = 0; i < 20; i++) {
       final angle = (i / 20) * pi * 2;
@@ -916,13 +1029,13 @@ class GamePainter extends CustomPainter {
       final particleSize = (3.0 * (1 - progress)) * (0.5 + random.nextDouble() * 0.5);
 
       final particlePaint = Paint()
-        ..color = const Color(0xFFD4AF37).withOpacity((1 - progress) * 0.7);
+        ..color = theme.gridColor.withOpacity((1 - progress) * 0.7);
 
       canvas.drawCircle(particlePos, particleSize, particlePaint);
 
       // Particle trail
       final trailPaint = Paint()
-        ..color = const Color(0xFFD4AF37).withOpacity((1 - progress) * 0.3)
+        ..color = theme.gridColor.withOpacity((1 - progress) * 0.3)
         ..strokeWidth = particleSize * 0.5
         ..style = PaintingStyle.stroke;
 

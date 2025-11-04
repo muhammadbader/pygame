@@ -24,8 +24,12 @@ class GameState extends ChangeNotifier {
   bool isPaused = false;
   Timer? _gameTimer;
   int currentSpeed = initialSpeed;
+  int currentTheme = 0; // Theme changes every 5 gems
 
   final Random _random = Random();
+
+  // Theme milestone - change theme every 5 gems
+  static const int gemsPerTheme = 5;
 
   /// Initialize a new game
   void initGame() {
@@ -44,6 +48,7 @@ class GameState extends ChangeNotifier {
     isGameOver = false;
     isPaused = false;
     currentSpeed = initialSpeed;
+    currentTheme = 0;
 
     _spawnFood();
     notifyListeners();
@@ -132,6 +137,9 @@ class GameState extends ChangeNotifier {
   void _eatFood() {
     foodEaten++;
     score += 10;
+
+    // Update theme every gemsPerTheme gems (cycles through 5 themes)
+    currentTheme = (foodEaten ~/ gemsPerTheme) % 5;
 
     // Increase speed every foodPerSpeedUp foods
     if (foodEaten % foodPerSpeedUp == 0 && currentSpeed > minSpeed) {
