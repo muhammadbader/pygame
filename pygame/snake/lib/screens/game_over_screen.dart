@@ -313,19 +313,22 @@ class _GameOverScreenState extends State<GameOverScreen>
                 ],
               ),
             ),
-            const SizedBox(width: AppTheme.spacingMedium),
-            ShaderMask(
-              shaderCallback: (bounds) => AppTheme.emeraldGradient.createShader(bounds),
-              child: Text(
-                'The serpent rests beneath the stars',
-                style: AppTheme.bodyLarge.copyWith(
-                  fontSize: 14,
-                  color: Colors.white,
-                  letterSpacing: 3,
+            const SizedBox(width: AppTheme.spacingSmall),
+            Flexible(
+              child: ShaderMask(
+                shaderCallback: (bounds) => AppTheme.emeraldGradient.createShader(bounds),
+                child: Text(
+                  'The serpent rests',
+                  textAlign: TextAlign.center,
+                  style: AppTheme.bodyLarge.copyWith(
+                    fontSize: 14,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: AppTheme.spacingMedium),
+            const SizedBox(width: AppTheme.spacingSmall),
             Container(
               width: 4,
               height: 4,
