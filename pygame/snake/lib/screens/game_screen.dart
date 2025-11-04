@@ -365,152 +365,37 @@ class _GameScreenState extends State<GameScreen>
   Widget _buildGameBoard() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate cell size to fit screen - account for border thickness
-        final maxSize = min(constraints.maxWidth, constraints.maxHeight);
-        // Reserve space for the ornamental borders (total ~30px on each side)
-        final borderReserve = 30.0;
-        final boardSize = (maxSize - borderReserve * 2) * 0.95;
+        // Calculate cell size to use full available space
+        final boardSize = min(constraints.maxWidth, constraints.maxHeight);
         final cellSize = boardSize / GameState.gridSize;
 
         return Center(
           child: GestureDetector(
             onPanStart: _handlePanStart,
             onPanUpdate: _handlePanUpdate,
-            child: AnimatedBuilder(
-              animation: _shimmerAnimationController,
-              builder: (context, child) {
-                final shimmerValue = _shimmerAnimationController.value;
-                final pulseGlow = (sin(shimmerValue * pi * 2) * 0.5 + 0.5) * 0.3;
-
-                return Container(
-                  padding: const EdgeInsets.all(15), // Outer padding for shadow space
-                  child: Container(
-                    width: boardSize,
-                    height: boardSize,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      // Multi-layer ornamental border with animated glow
-                      border: Border.all(
-                        color: const Color(0xFFD4AF37).withOpacity(0.6 + pulseGlow),
-                        width: 4,
-                      ),
-                      // Enhanced multi-layer glow effects
-                      boxShadow: [
-                        // Outer golden glow (pulsing)
-                        BoxShadow(
-                          color: const Color(0xFFD4AF37).withOpacity(0.5 + pulseGlow),
-                          blurRadius: 30,
-                          spreadRadius: 4,
-                        ),
-                        // Mid golden glow
-                        BoxShadow(
-                          color: const Color(0xFFFFD700).withOpacity(0.3 + pulseGlow * 0.5),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                        // Turquoise accent glow
-                        BoxShadow(
-                          color: const Color(0xFF00BCD4).withOpacity(0.3 + pulseGlow * 0.4),
-                          blurRadius: 45,
-                          spreadRadius: 6,
-                        ),
-                        // Inner turquoise shimmer
-                        BoxShadow(
-                          color: const Color(0xFF00BCD4).withOpacity(0.2),
-                          blurRadius: 15,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                      // Subtle gradient background for border depth
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          const Color(0xFF0D1B2A).withOpacity(0.3),
-                          const Color(0xFF1A237E).withOpacity(0.2),
-                        ],
-                      ),
+            child: SizedBox(
+              width: boardSize,
+              height: boardSize,
+              child: AnimatedBuilder(
+                animation: Listenable.merge([
+                  _foodAnimation,
+                  _shimmerAnimationController,
+                  _backgroundAnimationController,
+                ]),
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: GamePainter(
+                      gameState: _gameState,
+                      cellSize: cellSize,
+                      foodAnimation: _foodAnimation,
+                      shimmerAnimation: _shimmerAnimationController.value * pi * 2,
+                      backgroundAnimation: _backgroundAnimationController.value * pi * 2,
+                      treasureCollected: _treasureCollected,
+                      collectionFrame: _treasureCollected ? _collectionFrame : null,
                     ),
-                    // Mid-layer ornamental frame
-                    child: Container(
-                      margin: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: const Color(0xFFD4AF37).withOpacity(0.4 + pulseGlow * 0.3),
-                          width: 2,
-                        ),
-                        // Glassmorphic inner frame
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            const Color(0xFFD4AF37).withOpacity(0.1),
-                            const Color(0xFF00BCD4).withOpacity(0.05),
-                          ],
-                        ),
-                      ),
-                      // Inner ornamental border with turquoise accent
-                      child: Container(
-                        margin: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: const Color(0xFF00BCD4).withOpacity(0.4 + pulseGlow * 0.2),
-                            width: 2,
-                          ),
-                          // Inner glow
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF00BCD4).withOpacity(0.2 + pulseGlow * 0.2),
-                              blurRadius: 10,
-                              spreadRadius: 0,
-                            ),
-                          ],
-                        ),
-                        // Final inner frame
-                        child: Container(
-                          margin: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(2),
-                            border: Border.all(
-                              color: const Color(0xFFD4AF37).withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          // Add padding inside to prevent content from touching borders
-                          child: Padding(
-                            padding: const EdgeInsets.all(4),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: AnimatedBuilder(
-                                animation: Listenable.merge([
-                                  _foodAnimation,
-                                  _shimmerAnimationController,
-                                  _backgroundAnimationController,
-                                ]),
-                                builder: (context, child) {
-                                  return CustomPaint(
-                                    painter: GamePainter(
-                                      gameState: _gameState,
-                                      cellSize: cellSize,
-                                      foodAnimation: _foodAnimation,
-                                      shimmerAnimation: _shimmerAnimationController.value * pi * 2,
-                                      backgroundAnimation: _backgroundAnimationController.value * pi * 2,
-                                      treasureCollected: _treasureCollected,
-                                      collectionFrame: _treasureCollected ? _collectionFrame : null,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         );
