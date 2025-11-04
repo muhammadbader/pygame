@@ -7,7 +7,8 @@ import 'position.dart';
 /// Game state management
 class GameState extends ChangeNotifier {
   // Grid configuration
-  static const int gridSize = 20;
+  static const int gridWidth = 15;  // Narrower for phone width
+  static const int gridHeight = 25; // Taller for phone height
   static const int initialSpeed = 200; // milliseconds per tick
   static const int minSpeed = 100;
   static const int speedIncrement = 10;
@@ -24,17 +25,22 @@ class GameState extends ChangeNotifier {
   bool isPaused = false;
   Timer? _gameTimer;
   int currentSpeed = initialSpeed;
+  int currentTheme = 0; // Theme changes every 5 gems
 
   final Random _random = Random();
+
+  // Theme milestone - change theme every 5 gems
+  static const int gemsPerTheme = 5;
 
   /// Initialize a new game
   void initGame() {
     // Initialize snake at center with 3 segments
-    final center = gridSize ~/ 2;
+    final centerX = gridWidth ~/ 2;
+    final centerY = gridHeight ~/ 2;
     snake = [
-      Position(center, center),
-      Position(center - 1, center),
-      Position(center - 2, center),
+      Position(centerX, centerY),
+      Position(centerX - 1, centerY),
+      Position(centerX - 2, centerY),
     ];
 
     currentDirection = Direction.right;
@@ -44,6 +50,7 @@ class GameState extends ChangeNotifier {
     isGameOver = false;
     isPaused = false;
     currentSpeed = initialSpeed;
+    currentTheme = 0;
 
     _spawnFood();
     notifyListeners();
@@ -101,9 +108,9 @@ class GameState extends ChangeNotifier {
 
     // Check wall collision
     if (newHead.x < 0 ||
-        newHead.x >= gridSize ||
+        newHead.x >= gridWidth ||
         newHead.y < 0 ||
-        newHead.y >= gridSize) {
+        newHead.y >= gridHeight) {
       _gameOver();
       return;
     }
@@ -133,6 +140,9 @@ class GameState extends ChangeNotifier {
     foodEaten++;
     score += 10;
 
+    // Update theme every gemsPerTheme gems (cycles through 5 themes)
+    currentTheme = (foodEaten ~/ gemsPerTheme) % 5;
+
     // Increase speed every foodPerSpeedUp foods
     if (foodEaten % foodPerSpeedUp == 0 && currentSpeed > minSpeed) {
       currentSpeed = max(minSpeed, currentSpeed - speedIncrement);
@@ -147,8 +157,8 @@ class GameState extends ChangeNotifier {
   void _spawnFood() {
     final emptyCells = <Position>[];
 
-    for (int x = 0; x < gridSize; x++) {
-      for (int y = 0; y < gridSize; y++) {
+    for (int x = 0; x < gridWidth; x++) {
+      for (int y = 0; y < gridHeight; y++) {
         final pos = Position(x, y);
         if (!snake.contains(pos)) {
           emptyCells.add(pos);

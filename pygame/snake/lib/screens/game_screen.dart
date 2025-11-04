@@ -19,7 +19,14 @@ class _GameScreenState extends State<GameScreen>
   late GameState _gameState;
   late AnimationController _foodAnimationController;
   late Animation<double> _foodAnimation;
+  late AnimationController _shimmerAnimationController;
+  late AnimationController _backgroundAnimationController;
   final FocusNode _focusNode = FocusNode();
+
+  // Collection burst effect tracking
+  bool _treasureCollected = false;
+  int _collectionFrame = 0;
+  int _previousScore = 0;
 
   // Swipe detection
   Offset? _swipeStart;
@@ -34,6 +41,7 @@ class _GameScreenState extends State<GameScreen>
     _gameState.initGame();
     _gameState.startGame();
     _gameState.addListener(_onGameStateChanged);
+    _previousScore = _gameState.score;
 
     // Food pulse animation
     _foodAnimationController = AnimationController(
@@ -48,6 +56,18 @@ class _GameScreenState extends State<GameScreen>
       ),
     );
 
+    // Shimmer animation for grid and effects
+    _shimmerAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+
+    // Background animation for atmospheric effects
+    _backgroundAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20),
+    )..repeat();
+
     // Request focus for keyboard input
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -55,6 +75,28 @@ class _GameScreenState extends State<GameScreen>
   }
 
   void _onGameStateChanged() {
+    // Detect treasure collection
+    if (_gameState.score > _previousScore) {
+      _treasureCollected = true;
+      _collectionFrame = 0;
+
+      // Reset after animation completes
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) {
+          setState(() {
+            _treasureCollected = false;
+          });
+        }
+      });
+
+      _previousScore = _gameState.score;
+    }
+
+    // Advance collection burst animation
+    if (_treasureCollected && _collectionFrame < 10) {
+      _collectionFrame++;
+    }
+
     if (_gameState.isGameOver) {
       _showGameOver();
     }
@@ -138,6 +180,8 @@ class _GameScreenState extends State<GameScreen>
     _gameState.removeListener(_onGameStateChanged);
     _gameState.dispose();
     _foodAnimationController.dispose();
+    _shimmerAnimationController.dispose();
+    _backgroundAnimationController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -186,14 +230,28 @@ class _GameScreenState extends State<GameScreen>
 
   Widget _buildHUD() {
     return Container(
+      margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: const Color(0xFFD4AF37).withOpacity(0.3), // Rich gold
-            width: 1.5,
-          ),
+        // Glassmorphic effect
+        color: const Color(0xFF0D1B2A).withOpacity(0.6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFD4AF37).withOpacity(0.3),
+          width: 1.5,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00BCD4).withOpacity(0.1),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+          BoxShadow(
+            color: const Color(0xFFD4AF37).withOpacity(0.05),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -205,26 +263,33 @@ class _GameScreenState extends State<GameScreen>
             icon: Icons.star_rounded,
           ),
 
-          // Center ornament
+          // Center ornament with enhanced glow
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               border: Border.all(
-                color: const Color(0xFFD4AF37).withOpacity(0.4),
+                color: const Color(0xFFD4AF37).withOpacity(0.5),
                 width: 1.5,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFD4AF37).withOpacity(0.1),
-                  const Color(0xFF00BCD4).withOpacity(0.05),
+                  const Color(0xFFD4AF37).withOpacity(0.15),
+                  const Color(0xFF00BCD4).withOpacity(0.1),
                 ],
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFD4AF37).withOpacity(0.3),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                ),
+              ],
             ),
             child: Icon(
               Icons.stars_rounded,
               size: 24,
-              color: const Color(0xFFD4AF37).withOpacity(0.8),
+              color: const Color(0xFFD4AF37).withOpacity(0.9),
             ),
           ),
 
@@ -300,54 +365,40 @@ class _GameScreenState extends State<GameScreen>
   Widget _buildGameBoard() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate cell size to fit screen
-        final maxSize = min(constraints.maxWidth, constraints.maxHeight);
-        final boardSize = maxSize * 0.95;
-        final cellSize = boardSize / GameState.gridSize;
+        // Calculate cell size to fill screen as rectangle
+        final cellWidth = constraints.maxWidth / GameState.gridWidth;
+        final cellHeight = constraints.maxHeight / GameState.gridHeight;
 
-        return GestureDetector(
-          onPanStart: _handlePanStart,
-          onPanUpdate: _handlePanUpdate,
-          child: Container(
-            width: boardSize,
-            height: boardSize,
-            decoration: BoxDecoration(
-              // Arabian ornamental border
-              border: Border.all(
-                color: const Color(0xFFD4AF37).withOpacity(0.5), // Rich gold
-                width: 3,
-              ),
-              // Double border effect
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFD4AF37).withOpacity(0.4),
-                  blurRadius: 25,
-                  spreadRadius: 3,
-                ),
-                BoxShadow(
-                  color: const Color(0xFF00BCD4).withOpacity(0.2), // Turquoise glow
-                  blurRadius: 40,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            // Inner ornamental border
-            child: Container(
-              margin: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: const Color(0xFF00BCD4).withOpacity(0.3), // Turquoise
-                  width: 1.5,
-                ),
-              ),
+        // Use the smaller cell size to keep cells square
+        final cellSize = min(cellWidth, cellHeight);
+
+        // Calculate actual board dimensions
+        final boardWidth = cellSize * GameState.gridWidth;
+        final boardHeight = cellSize * GameState.gridHeight;
+
+        return Center(
+          child: GestureDetector(
+            onPanStart: _handlePanStart,
+            onPanUpdate: _handlePanUpdate,
+            child: SizedBox(
+              width: boardWidth,
+              height: boardHeight,
               child: AnimatedBuilder(
-                animation: _foodAnimation,
+                animation: Listenable.merge([
+                  _foodAnimation,
+                  _shimmerAnimationController,
+                  _backgroundAnimationController,
+                ]),
                 builder: (context, child) {
                   return CustomPaint(
                     painter: GamePainter(
                       gameState: _gameState,
                       cellSize: cellSize,
                       foodAnimation: _foodAnimation,
+                      shimmerAnimation: _shimmerAnimationController.value * pi * 2,
+                      backgroundAnimation: _backgroundAnimationController.value * pi * 2,
+                      treasureCollected: _treasureCollected,
+                      collectionFrame: _treasureCollected ? _collectionFrame : null,
                     ),
                   );
                 },
