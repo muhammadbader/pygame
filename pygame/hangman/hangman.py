@@ -7,9 +7,16 @@ import math
 # Configuration
 # ---------------------------
 WORDS = [
-    "python", "robotics", "artificial", "machine", "learning",
-    "flutter", "developer", "science", "technology", "computer",
-    "vibe", "fire", "slay", "sigma", "rizz", "drip", "bussin", "based"
+    # Basic Islamic terms
+    "islam", "quran", "muhammad", "prayer", "ramadan",
+    "mosque", "prophet", "ummah", "sunnah", "salah",
+    "deen", "iman", "hajj", "zakat", "sadaqah", "adhan", "taqwa", "jannah",
+    
+    # Historical Islamic terms
+    "andalus", "abbasid", "umayyad", "ottoman", "fatimid",
+    "cordoba", "baghdad", "damascus", "mecca", "medina",
+    "khilafah", "mamluk", "sultans", "granada", "caliphate",
+    "samarkand", "ayyubid", "seljuks", "almohad", "mughals"
 ]
 
 # Modern Minimalist Color Palette - Iconic Design
