@@ -2,34 +2,95 @@ import pygame
 import random
 import sys
 import math
+import colorsys
 
 # ---------------------------
 # Configuration
 # ---------------------------
 WORDS = [
     "python", "robotics", "artificial", "machine", "learning",
-    "flutter", "developer", "science", "technology", "computer"
+    "flutter", "developer", "science", "technology", "computer",
+    "vibe", "fire", "slay", "sigma", "rizz", "drip", "bussin", "based"
 ]
 
-# Modern Color Palette - EA Style
-DARK_BG = (15, 20, 35)
-MID_BG = (25, 35, 55)
-LIGHT_BG = (40, 50, 75)
-ACCENT_BLUE = (41, 128, 185)
-ACCENT_CYAN = (52, 152, 219)
-ACCENT_GREEN = (46, 204, 113)
-ACCENT_RED = (231, 76, 60)
-ACCENT_ORANGE = (230, 126, 34)
-ACCENT_PURPLE = (155, 89, 182)
-GOLD = (241, 196, 15)
+# Gen Z Neon Cyberpunk Color Palette
+BG_DARK = (10, 5, 20)
+BG_PURPLE = (25, 10, 40)
+NEON_PINK = (255, 16, 240)
+NEON_CYAN = (0, 255, 255)
+NEON_GREEN = (57, 255, 20)
+NEON_ORANGE = (255, 165, 0)
+NEON_YELLOW = (255, 255, 0)
+NEON_PURPLE = (191, 64, 191)
+NEON_BLUE = (64, 224, 208)
+HOT_PINK = (255, 105, 180)
+ELECTRIC_BLUE = (125, 249, 255)
+LIME = (204, 255, 0)
 WHITE = (255, 255, 255)
-LIGHT_GRAY = (189, 195, 199)
-DARK_GRAY = (52, 73, 94)
+BLACK = (0, 0, 0)
 
 # Screen settings
-WIDTH = 1200
-HEIGHT = 800
+WIDTH = 1400
+HEIGHT = 900
 FPS = 60
+
+# ---------------------------
+# Background Star Class
+# ---------------------------
+class Star:
+    def __init__(self):
+        self.x = random.randint(0, WIDTH)
+        self.y = random.randint(0, HEIGHT)
+        self.size = random.randint(1, 3)
+        self.speed = random.uniform(0.5, 2.0)
+        self.brightness = random.randint(100, 255)
+
+    def update(self):
+        self.y += self.speed
+        if self.y > HEIGHT:
+            self.y = 0
+            self.x = random.randint(0, WIDTH)
+
+    def draw(self, screen):
+        color = (self.brightness, self.brightness, self.brightness)
+        pygame.draw.circle(screen, color, (int(self.x), int(self.y)), self.size)
+
+# ---------------------------
+# Floating Shape Class
+# ---------------------------
+class FloatingShape:
+    def __init__(self):
+        self.x = random.randint(0, WIDTH)
+        self.y = random.randint(0, HEIGHT)
+        self.size = random.randint(20, 60)
+        self.rotation = random.uniform(0, 360)
+        self.rotation_speed = random.uniform(-1, 1)
+        self.color = random.choice([NEON_PINK, NEON_CYAN, NEON_PURPLE, NEON_GREEN])
+        self.alpha = random.randint(20, 60)
+        self.drift_x = random.uniform(-0.3, 0.3)
+        self.drift_y = random.uniform(-0.3, 0.3)
+
+    def update(self):
+        self.rotation += self.rotation_speed
+        self.x += self.drift_x
+        self.y += self.drift_y
+
+        # Wrap around
+        if self.x < -self.size: self.x = WIDTH + self.size
+        if self.x > WIDTH + self.size: self.x = -self.size
+        if self.y < -self.size: self.y = HEIGHT + self.size
+        if self.y > HEIGHT + self.size: self.y = -self.size
+
+    def draw(self, screen):
+        s = pygame.Surface((self.size * 2, self.size * 2), pygame.SRCALPHA)
+        points = []
+        for i in range(3):
+            angle = math.radians(self.rotation + i * 120)
+            x = self.size + math.cos(angle) * self.size
+            y = self.size + math.sin(angle) * self.size
+            points.append((x, y))
+        pygame.draw.polygon(s, (*self.color, self.alpha), points)
+        screen.blit(s, (int(self.x - self.size), int(self.y - self.size)))
 
 # ---------------------------
 # Particle Class for Visual Effects
@@ -42,59 +103,76 @@ class Particle:
         self.velocity = velocity
         self.lifetime = 60
         self.max_lifetime = 60
-        self.size = random.randint(3, 8)
+        self.size = random.randint(4, 12)
+        self.glow = True
 
     def update(self):
         self.x += self.velocity[0]
         self.y += self.velocity[1]
-        self.velocity = (self.velocity[0] * 0.98, self.velocity[1] + 0.2)  # Gravity
+        self.velocity = (self.velocity[0] * 0.98, self.velocity[1] + 0.2)
         self.lifetime -= 1
 
     def draw(self, screen):
         alpha = int(255 * (self.lifetime / self.max_lifetime))
         size = int(self.size * (self.lifetime / self.max_lifetime))
         if size > 0:
+            # Glow effect
+            for glow_size in range(size * 3, size, -size // 3):
+                glow_alpha = alpha // 3
+                s = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+                pygame.draw.circle(s, (*self.color, glow_alpha), (glow_size, glow_size), glow_size)
+                screen.blit(s, (int(self.x - glow_size), int(self.y - glow_size)))
+
+            # Core particle
             s = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
-            color_with_alpha = (*self.color, alpha)
-            pygame.draw.circle(s, color_with_alpha, (size, size), size)
+            pygame.draw.circle(s, (*self.color, alpha), (size, size), size)
             screen.blit(s, (int(self.x - size), int(self.y - size)))
 
     def is_dead(self):
         return self.lifetime <= 0
 
 # ---------------------------
-# Button Class
+# Text Pop Animation
 # ---------------------------
-class Button:
-    def __init__(self, x, y, width, height, text, color, hover_color):
-        self.rect = pygame.Rect(x, y, width, height)
+class TextPop:
+    def __init__(self, text, x, y, color, font_size=60):
         self.text = text
+        self.x = x
+        self.y = y
         self.color = color
-        self.hover_color = hover_color
-        self.current_color = color
-        self.is_hovered = False
+        self.font_size = font_size
+        self.lifetime = 60
+        self.max_lifetime = 60
+        self.vel_y = -3
 
-    def update(self, mouse_pos):
-        self.is_hovered = self.rect.collidepoint(mouse_pos)
-        self.current_color = self.hover_color if self.is_hovered else self.color
+    def update(self):
+        self.y += self.vel_y
+        self.vel_y += 0.1
+        self.lifetime -= 1
 
-    def draw(self, screen, font):
-        # Draw shadow
-        shadow_rect = self.rect.copy()
-        shadow_rect.y += 4
-        pygame.draw.rect(screen, (0, 0, 0, 100), shadow_rect, border_radius=10)
+    def draw(self, screen):
+        if self.lifetime > 0:
+            alpha = int(255 * (self.lifetime / self.max_lifetime))
+            scale = 1.0 + (1.0 - self.lifetime / self.max_lifetime) * 0.5
+            font_size = int(self.font_size * scale)
+            font = pygame.font.Font(None, font_size)
 
-        # Draw button
-        pygame.draw.rect(screen, self.current_color, self.rect, border_radius=10)
-        pygame.draw.rect(screen, WHITE, self.rect, 2, border_radius=10)
+            # Glow
+            for offset in range(10, 0, -2):
+                glow_surf = font.render(self.text, True, self.color)
+                glow_surf.set_alpha(alpha // 4)
+                for dx, dy in [(-offset, 0), (offset, 0), (0, -offset), (0, offset)]:
+                    rect = glow_surf.get_rect(center=(int(self.x + dx), int(self.y + dy)))
+                    screen.blit(glow_surf, rect)
 
-        # Draw text
-        text_surf = font.render(self.text, True, WHITE)
-        text_rect = text_surf.get_rect(center=self.rect.center)
-        screen.blit(text_surf, text_rect)
+            # Main text
+            text_surf = font.render(self.text, True, WHITE)
+            text_surf.set_alpha(alpha)
+            rect = text_surf.get_rect(center=(int(self.x), int(self.y)))
+            screen.blit(text_surf, rect)
 
-    def is_clicked(self, mouse_pos, mouse_pressed):
-        return self.is_hovered and mouse_pressed[0]
+    def is_dead(self):
+        return self.lifetime <= 0
 
 # ---------------------------
 # Game Class
@@ -103,22 +181,34 @@ class HangmanGame:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("HANGMAN - Elite Edition")
+        pygame.display.set_caption("🔥 HANGMAN // NO CAP 🔥")
         self.clock = pygame.time.Clock()
 
         # Fonts
+        self.font_massive = pygame.font.Font(None, 120)
         self.font_title = pygame.font.Font(None, 96)
         self.font_large = pygame.font.Font(None, 80)
         self.font_medium = pygame.font.Font(None, 48)
         self.font_small = pygame.font.Font(None, 36)
         self.font_tiny = pygame.font.Font(None, 28)
 
+        # Background elements
+        self.stars = [Star() for _ in range(150)]
+        self.shapes = [FloatingShape() for _ in range(8)]
+
         # Game state
         self.particles = []
+        self.text_pops = []
         self.animation_timer = 0
         self.letter_reveal_timers = {}
         self.score = 0
         self.games_played = 0
+        self.streak = 0
+        self.best_streak = 0
+        self.combo = 0
+        self.total_wins = 0
+        self.rainbow_offset = 0
+        self.screen_flash = 0
 
         self.reset_game()
 
@@ -130,338 +220,443 @@ class HangmanGame:
         self.word_display = ["_"] * len(self.word)
         self.game_over = False
         self.won = False
-        self.message = "Press any letter to start guessing!"
-        self.message_color = LIGHT_GRAY
+        self.message = "LET'S GOOO! GUESS A LETTER 🚀"
+        self.message_color = NEON_CYAN
         self.animation_timer = 0
         self.shake_offset = 0
         self.shake_intensity = 0
         self.pulse_scale = 1.0
         self.games_played += 1
+        self.combo = 0
+
+    def get_rainbow_color(self, offset=0):
+        """Get color from rainbow spectrum."""
+        hue = ((self.animation_timer * 2 + offset) % 360) / 360
+        rgb = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+        return (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
 
     def create_particles(self, x, y, color, count=20):
         """Create particle explosion effect."""
         for _ in range(count):
             angle = random.uniform(0, 2 * math.pi)
-            speed = random.uniform(2, 8)
+            speed = random.uniform(3, 12)
             velocity = (math.cos(angle) * speed, math.sin(angle) * speed)
             self.particles.append(Particle(x, y, color, velocity))
 
-    def draw_gradient_background(self):
-        """Draw a gradient background."""
+    def create_text_pop(self, text, x, y, color, font_size=60):
+        """Create floating text animation."""
+        self.text_pops.append(TextPop(text, x, y, color, font_size))
+
+    def draw_gradient_bg(self):
+        """Draw animated gradient background."""
         for y in range(HEIGHT):
             progress = y / HEIGHT
-            r = int(DARK_BG[0] + (MID_BG[0] - DARK_BG[0]) * progress)
-            g = int(DARK_BG[1] + (MID_BG[1] - DARK_BG[1]) * progress)
-            b = int(DARK_BG[2] + (MID_BG[2] - DARK_BG[2]) * progress)
-            pygame.draw.line(self.screen, (r, g, b), (0, y), (WIDTH, y))
+            # Animated colors
+            offset = math.sin(self.animation_timer * 0.01 + progress * 2) * 10
+            r = int(BG_DARK[0] + (BG_PURPLE[0] - BG_DARK[0]) * progress + offset)
+            g = int(BG_DARK[1] + (BG_PURPLE[1] - BG_DARK[1]) * progress + offset)
+            b = int(BG_DARK[2] + (BG_PURPLE[2] - BG_DARK[2]) * progress + offset)
+            pygame.draw.line(self.screen, (max(0, r), max(0, g), max(0, b)), (0, y), (WIDTH, y))
 
-    def draw_panel(self, rect, color=MID_BG, border_color=ACCENT_BLUE):
-        """Draw a modern UI panel with shadow and border."""
-        # Shadow
-        shadow = pygame.Surface((rect.width + 10, rect.height + 10), pygame.SRCALPHA)
-        pygame.draw.rect(shadow, (0, 0, 0, 80), shadow.get_rect(), border_radius=15)
-        self.screen.blit(shadow, (rect.x - 5, rect.y + 5))
+    def draw_neon_panel(self, rect, border_color, glow=True):
+        """Draw neon-style panel with glow."""
+        # Outer glow
+        if glow:
+            for i in range(15, 0, -3):
+                glow_rect = rect.inflate(i * 2, i * 2)
+                alpha = int(30 * (i / 15))
+                s = pygame.Surface((glow_rect.width, glow_rect.height), pygame.SRCALPHA)
+                pygame.draw.rect(s, (*border_color, alpha), s.get_rect(), border_radius=20)
+                self.screen.blit(s, glow_rect.topleft)
 
-        # Panel
-        pygame.draw.rect(self.screen, color, rect, border_radius=15)
-        pygame.draw.rect(self.screen, border_color, rect, 3, border_radius=15)
+        # Glass panel
+        panel_surf = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(panel_surf, (20, 10, 35, 180), panel_surf.get_rect(), border_radius=15)
+        self.screen.blit(panel_surf, rect.topleft)
 
-    def draw_text_with_shadow(self, text, font, color, x, y, center=True, shadow_offset=3):
-        """Draw text with shadow effect."""
-        # Shadow
-        shadow_surf = font.render(text, True, (0, 0, 0))
-        shadow_rect = shadow_surf.get_rect(center=(x + shadow_offset, y + shadow_offset)) if center else shadow_surf.get_rect(topleft=(x + shadow_offset, y + shadow_offset))
-        self.screen.blit(shadow_surf, shadow_rect)
+        # Neon border
+        pygame.draw.rect(self.screen, border_color, rect, 4, border_radius=15)
 
-        # Text
-        text_surf = font.render(text, True, color)
-        text_rect = text_surf.get_rect(center=(x, y)) if center else text_surf.get_rect(topleft=(x, y))
-        self.screen.blit(text_surf, text_rect)
+        # Inner highlight
+        inner_rect = rect.inflate(-8, -8)
+        pygame.draw.rect(self.screen, (*border_color, 60), inner_rect, 2, border_radius=12)
 
-        return text_rect
-
-    def draw_glowing_text(self, text, font, color, x, y, glow_color=None):
-        """Draw text with glow effect."""
-        if glow_color is None:
-            glow_color = color
-
+    def draw_neon_text(self, text, font, color, x, y, glow_intensity=8):
+        """Draw text with neon glow effect."""
         # Glow layers
-        for offset in range(8, 0, -2):
-            alpha = int(100 * (offset / 8))
-            glow_surf = font.render(text, True, glow_color)
+        for offset in range(glow_intensity * 2, 0, -2):
+            alpha = int(150 * (offset / (glow_intensity * 2)))
+            glow_surf = font.render(text, True, color)
             glow_surf.set_alpha(alpha)
-            for dx, dy in [(-offset, 0), (offset, 0), (0, -offset), (0, offset)]:
-                glow_rect = glow_surf.get_rect(center=(x + dx, y + dy))
-                self.screen.blit(glow_surf, glow_rect)
+            for angle in range(0, 360, 45):
+                dx = int(math.cos(math.radians(angle)) * offset)
+                dy = int(math.sin(math.radians(angle)) * offset)
+                rect = glow_surf.get_rect(center=(x + dx, y + dy))
+                self.screen.blit(glow_surf, rect)
 
         # Main text
-        text_surf = font.render(text, True, color)
-        text_rect = text_surf.get_rect(center=(x, y))
-        self.screen.blit(text_surf, text_rect)
+        text_surf = font.render(text, True, WHITE)
+        rect = text_surf.get_rect(center=(x, y))
+        self.screen.blit(text_surf, rect)
+
+    def draw_rainbow_text(self, text, font, x, y):
+        """Draw text with rainbow colors."""
+        total_width = font.size(text)[0]
+        start_x = x - total_width // 2
+
+        for i, char in enumerate(text):
+            color = self.get_rainbow_color(i * 30)
+            self.draw_neon_text(char, font, color, start_x + font.size(text[:i])[0] + font.size(char)[0] // 2, y, 6)
 
     def draw_hangman(self):
-        """Draw enhanced hangman with modern graphics."""
+        """Draw cyberpunk hangman."""
         base_x = 250
-        base_y = 600
+        base_y = 700
 
-        # Draw platform shadow
-        shadow_surf = pygame.Surface((150, 10), pygame.SRCALPHA)
-        pygame.draw.ellipse(shadow_surf, (0, 0, 0, 80), shadow_surf.get_rect())
-        self.screen.blit(shadow_surf, (base_x - 75, base_y + 10))
+        # Holographic platform
+        platform_surf = pygame.Surface((200, 20), pygame.SRCALPHA)
+        for i in range(10):
+            alpha = int(100 - i * 10)
+            pygame.draw.ellipse(platform_surf, (*NEON_CYAN, alpha),
+                              pygame.Rect(10, i * 2, 180, 10))
+        self.screen.blit(platform_surf, (base_x - 100, base_y))
 
-        # Gallows with gradient effect
-        # Base
-        pygame.draw.line(self.screen, DARK_GRAY, (base_x - 60, base_y), (base_x + 60, base_y), 10)
-        pygame.draw.line(self.screen, LIGHT_GRAY, (base_x - 60, base_y - 2), (base_x + 60, base_y - 2), 4)
+        # Neon gallows
+        glow_color = self.get_rainbow_color(0)
+
+        # Base with glow
+        for thickness in range(15, 5, -2):
+            alpha = int(100 * (thickness / 15))
+            pygame.draw.line(self.screen, (*glow_color, alpha),
+                           (base_x - 80, base_y), (base_x + 80, base_y), thickness)
+        pygame.draw.line(self.screen, WHITE, (base_x - 80, base_y), (base_x + 80, base_y), 6)
 
         # Vertical pole
-        pygame.draw.line(self.screen, DARK_GRAY, (base_x, base_y), (base_x, base_y - 350), 10)
-        pygame.draw.line(self.screen, LIGHT_GRAY, (base_x - 3, base_y), (base_x - 3, base_y - 350), 4)
+        for thickness in range(15, 5, -2):
+            alpha = int(100 * (thickness / 15))
+            pygame.draw.line(self.screen, (*NEON_PINK, alpha),
+                           (base_x, base_y), (base_x, base_y - 400), thickness)
+        pygame.draw.line(self.screen, WHITE, (base_x, base_y), (base_x, base_y - 400), 6)
 
-        # Top horizontal
-        pygame.draw.line(self.screen, DARK_GRAY, (base_x, base_y - 350), (base_x + 150, base_y - 350), 10)
-        pygame.draw.line(self.screen, LIGHT_GRAY, (base_x, base_y - 352), (base_x + 150, base_y - 352), 4)
+        # Top bar
+        for thickness in range(15, 5, -2):
+            alpha = int(100 * (thickness / 15))
+            pygame.draw.line(self.screen, (*NEON_CYAN, alpha),
+                           (base_x, base_y - 400), (base_x + 180, base_y - 400), thickness)
+        pygame.draw.line(self.screen, WHITE, (base_x, base_y - 400), (base_x + 180, base_y - 400), 6)
 
-        # Rope
-        for i in range(5):
-            y_offset = i * 12
-            pygame.draw.line(self.screen, ACCENT_ORANGE,
-                           (base_x + 150, base_y - 350 + y_offset),
-                           (base_x + 150, base_y - 350 + y_offset + 10), 6)
+        # Animated rope
+        rope_color = self.get_rainbow_color(self.animation_timer * 10)
+        for i in range(6):
+            y_pos = base_y - 400 + i * 15
+            thickness = 8 - i % 2
+            pygame.draw.line(self.screen, rope_color,
+                           (base_x + 180, y_pos), (base_x + 180, y_pos + 12), thickness)
 
         wrong_guesses = 6 - self.tries
-        hang_x = base_x + 150
-        head_y = base_y - 250
+        hang_x = base_x + 180
+        head_y = base_y - 300
 
-        # Apply shake effect when losing tries
+        # Apply shake
         shake_x = random.randint(-self.shake_intensity, self.shake_intensity)
         shake_y = random.randint(-self.shake_intensity, self.shake_intensity)
 
         if wrong_guesses >= 1:  # Head
-            # Glow effect for head
-            for radius in range(45, 35, -2):
-                alpha = int(50 * ((45 - radius) / 10))
+            # Massive glow
+            for radius in range(60, 40, -4):
+                alpha = int(80 * ((60 - radius) / 20))
                 s = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-                pygame.draw.circle(s, (*ACCENT_RED, alpha), (radius, radius), radius)
+                pygame.draw.circle(s, (*NEON_PINK, alpha), (radius, radius), radius)
                 self.screen.blit(s, (hang_x + shake_x - radius, head_y + shake_y - radius))
 
-            pygame.draw.circle(self.screen, WHITE, (hang_x + shake_x, head_y + shake_y), 40, 0)
-            pygame.draw.circle(self.screen, ACCENT_RED, (hang_x + shake_x, head_y + shake_y), 40, 5)
+            # Head
+            pygame.draw.circle(self.screen, BG_PURPLE, (hang_x + shake_x, head_y + shake_y), 42)
+            pygame.draw.circle(self.screen, NEON_PINK, (hang_x + shake_x, head_y + shake_y), 42, 6)
 
-            # Face details
-            # Eyes
-            pygame.draw.circle(self.screen, DARK_BG, (hang_x - 12 + shake_x, head_y - 5 + shake_y), 5)
-            pygame.draw.circle(self.screen, DARK_BG, (hang_x + 12 + shake_x, head_y - 5 + shake_y), 5)
-            # Sad mouth
-            pygame.draw.arc(self.screen, DARK_BG,
-                          pygame.Rect(hang_x - 15 + shake_x, head_y + 10 + shake_y, 30, 20),
-                          math.pi, 2 * math.pi, 3)
+            # Glowing X eyes
+            eye_left_x = hang_x - 15 + shake_x
+            eye_right_x = hang_x + 15 + shake_x
+            eye_y = head_y - 5 + shake_y
+
+            for ex in [eye_left_x, eye_right_x]:
+                pygame.draw.line(self.screen, NEON_CYAN, (ex - 6, eye_y - 6), (ex + 6, eye_y + 6), 4)
+                pygame.draw.line(self.screen, NEON_CYAN, (ex - 6, eye_y + 6), (ex + 6, eye_y - 6), 4)
+
+            # Mouth
+            mouth_y = head_y + 15 + shake_y
+            pygame.draw.arc(self.screen, NEON_PINK,
+                          pygame.Rect(hang_x - 18 + shake_x, mouth_y, 36, 25),
+                          math.pi, 2 * math.pi, 4)
+
+        # Body parts with neon glow
+        body_color = NEON_CYAN if wrong_guesses >= 2 else WHITE
 
         if wrong_guesses >= 2:  # Body
-            pygame.draw.line(self.screen, ACCENT_RED,
-                           (hang_x + shake_x, head_y + 40 + shake_y),
-                           (hang_x + shake_x, head_y + 140 + shake_y), 8)
+            for thickness in range(18, 6, -3):
+                alpha = int(100 * (thickness / 18))
+                pygame.draw.line(self.screen, (*body_color, alpha),
+                               (hang_x + shake_x, head_y + 42 + shake_y),
+                               (hang_x + shake_x, head_y + 160 + shake_y), thickness)
+            pygame.draw.line(self.screen, WHITE,
+                           (hang_x + shake_x, head_y + 42 + shake_y),
+                           (hang_x + shake_x, head_y + 160 + shake_y), 8)
 
         if wrong_guesses >= 3:  # Left arm
-            pygame.draw.line(self.screen, ACCENT_RED,
-                           (hang_x + shake_x, head_y + 60 + shake_y),
-                           (hang_x - 50 + shake_x, head_y + 110 + shake_y), 8)
+            for thickness in range(18, 6, -3):
+                alpha = int(100 * (thickness / 18))
+                pygame.draw.line(self.screen, (*NEON_GREEN, alpha),
+                               (hang_x + shake_x, head_y + 70 + shake_y),
+                               (hang_x - 60 + shake_x, head_y + 130 + shake_y), thickness)
+            pygame.draw.line(self.screen, WHITE,
+                           (hang_x + shake_x, head_y + 70 + shake_y),
+                           (hang_x - 60 + shake_x, head_y + 130 + shake_y), 8)
 
         if wrong_guesses >= 4:  # Right arm
-            pygame.draw.line(self.screen, ACCENT_RED,
-                           (hang_x + shake_x, head_y + 60 + shake_y),
-                           (hang_x + 50 + shake_x, head_y + 110 + shake_y), 8)
+            for thickness in range(18, 6, -3):
+                alpha = int(100 * (thickness / 18))
+                pygame.draw.line(self.screen, (*NEON_GREEN, alpha),
+                               (hang_x + shake_x, head_y + 70 + shake_y),
+                               (hang_x + 60 + shake_x, head_y + 130 + shake_y), thickness)
+            pygame.draw.line(self.screen, WHITE,
+                           (hang_x + shake_x, head_y + 70 + shake_y),
+                           (hang_x + 60 + shake_x, head_y + 130 + shake_y), 8)
 
         if wrong_guesses >= 5:  # Left leg
-            pygame.draw.line(self.screen, ACCENT_RED,
-                           (hang_x + shake_x, head_y + 140 + shake_y),
-                           (hang_x - 45 + shake_x, head_y + 210 + shake_y), 8)
+            for thickness in range(18, 6, -3):
+                alpha = int(100 * (thickness / 18))
+                pygame.draw.line(self.screen, (*NEON_ORANGE, alpha),
+                               (hang_x + shake_x, head_y + 160 + shake_y),
+                               (hang_x - 50 + shake_x, head_y + 240 + shake_y), thickness)
+            pygame.draw.line(self.screen, WHITE,
+                           (hang_x + shake_x, head_y + 160 + shake_y),
+                           (hang_x - 50 + shake_x, head_y + 240 + shake_y), 8)
 
         if wrong_guesses >= 6:  # Right leg
-            pygame.draw.line(self.screen, ACCENT_RED,
-                           (hang_x + shake_x, head_y + 140 + shake_y),
-                           (hang_x + 45 + shake_x, head_y + 210 + shake_y), 8)
+            for thickness in range(18, 6, -3):
+                alpha = int(100 * (thickness / 18))
+                pygame.draw.line(self.screen, (*NEON_ORANGE, alpha),
+                               (hang_x + shake_x, head_y + 160 + shake_y),
+                               (hang_x + 50 + shake_x, head_y + 240 + shake_y), thickness)
+            pygame.draw.line(self.screen, WHITE,
+                           (hang_x + shake_x, head_y + 160 + shake_y),
+                           (hang_x + 50 + shake_x, head_y + 240 + shake_y), 8)
 
-        # Reduce shake over time
         if self.shake_intensity > 0:
             self.shake_intensity -= 1
 
     def draw_word(self):
-        """Draw word with animated letter boxes."""
-        panel_rect = pygame.Rect(500, 150, 650, 120)
-        self.draw_panel(panel_rect, LIGHT_BG, ACCENT_CYAN)
+        """Draw word with fire letter boxes."""
+        panel_rect = pygame.Rect(550, 180, 800, 140)
+        self.draw_neon_panel(panel_rect, NEON_PINK)
 
-        # Title
-        self.draw_text_with_shadow("WORD", self.font_small, ACCENT_CYAN, 525, 180, center=False)
+        # Title with emoji
+        self.draw_neon_text("WORD 📝", self.font_medium, NEON_PINK, 640, 220, 6)
 
-        # Calculate letter spacing
+        # Letter boxes
         total_letters = len(self.word_display)
-        box_size = 60
-        spacing = 15
+        box_size = 70
+        spacing = 20
         total_width = (box_size + spacing) * total_letters - spacing
-        start_x = 500 + (650 - total_width) // 2
+        start_x = 550 + (800 - total_width) // 2
 
         for i, letter in enumerate(self.word_display):
             x = start_x + i * (box_size + spacing)
-            y = 210
+            y = 260
 
-            # Animated reveal
+            # Animation
             if letter != "_" and i in self.letter_reveal_timers:
-                scale = min(1.0, self.letter_reveal_timers[i] / 10.0)
+                scale = min(1.2, self.letter_reveal_timers[i] / 8.0)
                 size = int(box_size * scale)
                 offset = (box_size - size) // 2
             else:
                 size = box_size
                 offset = 0
 
-            # Letter box
             box_rect = pygame.Rect(x + offset, y + offset, size, size)
 
             if letter == "_":
-                pygame.draw.rect(self.screen, MID_BG, box_rect, border_radius=8)
-                pygame.draw.rect(self.screen, DARK_GRAY, box_rect, 3, border_radius=8)
+                # Empty box
+                pygame.draw.rect(self.screen, (30, 20, 50, 200), box_rect, border_radius=12)
+                pygame.draw.rect(self.screen, NEON_PURPLE, box_rect, 3, border_radius=12)
             else:
-                pygame.draw.rect(self.screen, ACCENT_CYAN, box_rect, border_radius=8)
-                pygame.draw.rect(self.screen, WHITE, box_rect, 3, border_radius=8)
+                # Filled box with rainbow glow
+                color = self.get_rainbow_color(i * 40 + self.animation_timer * 5)
+
+                # Glow
+                for g_size in range(size + 20, size, -4):
+                    g_offset = (g_size - size) // 2
+                    g_rect = pygame.Rect(x + offset - g_offset, y + offset - g_offset, g_size, g_size)
+                    alpha = int(60 * ((size + 20 - g_size) / 20))
+                    s = pygame.Surface((g_size, g_size), pygame.SRCALPHA)
+                    pygame.draw.rect(s, (*color, alpha), s.get_rect(), border_radius=14)
+                    self.screen.blit(s, g_rect.topleft)
+
+                pygame.draw.rect(self.screen, (10, 5, 20, 240), box_rect, border_radius=12)
+                pygame.draw.rect(self.screen, color, box_rect, 5, border_radius=12)
 
                 # Letter
-                letter_surf = self.font_medium.render(letter, True, WHITE)
+                letter_surf = self.font_large.render(letter, True, WHITE)
                 letter_rect = letter_surf.get_rect(center=box_rect.center)
                 self.screen.blit(letter_surf, letter_rect)
 
         # Update timers
         for key in list(self.letter_reveal_timers.keys()):
             self.letter_reveal_timers[key] += 1
-            if self.letter_reveal_timers[key] > 10:
+            if self.letter_reveal_timers[key] > 12:
                 del self.letter_reveal_timers[key]
 
-    def draw_guessed_letters(self):
-        """Draw guessed letters in a modern panel."""
-        panel_rect = pygame.Rect(500, 300, 650, 100)
-        self.draw_panel(panel_rect, LIGHT_BG, ACCENT_PURPLE)
+    def draw_stats_panel(self):
+        """Draw stats in top left."""
+        panel_rect = pygame.Rect(30, 30, 460, 120)
+        self.draw_neon_panel(panel_rect, NEON_CYAN)
 
-        # Title
-        self.draw_text_with_shadow("GUESSED LETTERS", self.font_small, ACCENT_PURPLE, 525, 325, center=False)
+        # Streak
+        streak_color = NEON_ORANGE if self.streak > 0 else NEON_CYAN
+        self.draw_neon_text(f"🔥 STREAK: {self.streak}", self.font_small, streak_color, 140, 60, 4)
 
-        # Letters
-        if self.guessed_letters:
-            letters_str = "  ".join(sorted(self.guessed_letters))
-        else:
-            letters_str = "None yet..."
+        # Best streak
+        self.draw_neon_text(f"👑 BEST: {self.best_streak}", self.font_tiny, GOLD, 140, 95, 3)
 
-        self.draw_text_with_shadow(letters_str, self.font_small, WHITE, 825, 360)
+        # Score with rainbow
+        score_text = f"💎 {self.score}"
+        self.draw_rainbow_text(score_text, self.font_medium, 360, 75)
 
-    def draw_tries(self):
-        """Draw remaining tries with visual indicator."""
-        panel_rect = pygame.Rect(500, 430, 300, 100)
+    def draw_lives(self):
+        """Draw lives with fire hearts."""
+        panel_rect = pygame.Rect(550, 350, 800, 100)
 
-        if self.tries <= 2:
-            self.draw_panel(panel_rect, LIGHT_BG, ACCENT_RED)
-            color = ACCENT_RED
-        else:
-            self.draw_panel(panel_rect, LIGHT_BG, ACCENT_GREEN)
-            color = ACCENT_GREEN
+        color = NEON_GREEN if self.tries > 2 else NEON_PINK
+        self.draw_neon_panel(panel_rect, color)
 
-        # Title
-        self.draw_text_with_shadow("LIVES", self.font_small, color, 525, 455, center=False)
+        self.draw_neon_text("LIVES 💖", self.font_medium, color, 640, 385, 6)
 
-        # Draw hearts
-        heart_y = 485
+        # Hearts
+        heart_y = 390
         for i in range(6):
-            heart_x = 540 + i * 40
+            heart_x = 740 + i * 70
+
             if i < self.tries:
-                # Filled heart
-                pygame.draw.circle(self.screen, ACCENT_RED, (heart_x - 5, heart_y), 8)
-                pygame.draw.circle(self.screen, ACCENT_RED, (heart_x + 5, heart_y), 8)
-                pygame.draw.polygon(self.screen, ACCENT_RED, [
-                    (heart_x - 12, heart_y),
-                    (heart_x, heart_y + 15),
-                    (heart_x + 12, heart_y)
+                # Animated heart
+                scale = 1.0 + 0.1 * math.sin(self.animation_timer * 0.1 + i * 0.5)
+                heart_size = int(12 * scale)
+
+                # Glow
+                for g_size in range(heart_size + 15, heart_size, -3):
+                    alpha = int(60 * ((heart_size + 15 - g_size) / 15))
+                    for offset_x, offset_y in [(-g_size//2, 0), (g_size//2, 0)]:
+                        s = pygame.Surface((g_size * 2, g_size * 2), pygame.SRCALPHA)
+                        pygame.draw.circle(s, (*NEON_PINK, alpha), (g_size, g_size), g_size)
+                        self.screen.blit(s, (heart_x + offset_x - g_size, heart_y + offset_y - g_size))
+
+                # Heart
+                pygame.draw.circle(self.screen, NEON_PINK, (heart_x - heart_size//2, heart_y), heart_size)
+                pygame.draw.circle(self.screen, NEON_PINK, (heart_x + heart_size//2, heart_y), heart_size)
+                pygame.draw.polygon(self.screen, NEON_PINK, [
+                    (heart_x - heart_size * 1.2, heart_y),
+                    (heart_x, heart_y + heart_size * 2),
+                    (heart_x + heart_size * 1.2, heart_y)
                 ])
             else:
-                # Empty heart
-                pygame.draw.circle(self.screen, DARK_GRAY, (heart_x - 5, heart_y), 8, 2)
-                pygame.draw.circle(self.screen, DARK_GRAY, (heart_x + 5, heart_y), 8, 2)
-                pygame.draw.polygon(self.screen, DARK_GRAY, [
-                    (heart_x - 12, heart_y),
-                    (heart_x, heart_y + 15),
-                    (heart_x + 12, heart_y)
-                ], 2)
+                # Dead heart
+                pygame.draw.circle(self.screen, (60, 60, 80), (heart_x - 6, heart_y), 8, 3)
+                pygame.draw.circle(self.screen, (60, 60, 80), (heart_x + 6, heart_y), 8, 3)
+                pygame.draw.polygon(self.screen, (60, 60, 80), [
+                    (heart_x - 14, heart_y),
+                    (heart_x, heart_y + 20),
+                    (heart_x + 14, heart_y)
+                ], 3)
 
-    def draw_score(self):
-        """Draw score panel."""
-        panel_rect = pygame.Rect(830, 430, 320, 100)
-        self.draw_panel(panel_rect, LIGHT_BG, GOLD)
+    def draw_guessed_letters(self):
+        """Draw guessed letters panel."""
+        panel_rect = pygame.Rect(550, 480, 800, 100)
+        self.draw_neon_panel(panel_rect, NEON_PURPLE)
 
-        # Title
-        self.draw_text_with_shadow("SCORE", self.font_small, GOLD, 855, 455, center=False)
+        self.draw_neon_text("GUESSED 🎯", self.font_medium, NEON_PURPLE, 640, 515, 6)
 
-        # Score value
-        score_text = f"{self.score}"
-        self.draw_glowing_text(score_text, self.font_large, GOLD, 990, 485, GOLD)
+        if self.guessed_letters:
+            letters = " ".join(sorted(self.guessed_letters))
+        else:
+            letters = "NONE YET"
+
+        self.draw_neon_text(letters, self.font_small, WHITE, 950, 545, 4)
 
     def draw_message(self):
-        """Draw message with animation."""
-        # Pulse effect for message
-        self.pulse_scale = 1.0 + 0.05 * math.sin(self.animation_timer * 0.1)
+        """Draw message with mega effects."""
+        panel_rect = pygame.Rect(550, 610, 800, 110)
+        self.draw_neon_panel(panel_rect, self.message_color)
 
-        panel_rect = pygame.Rect(500, 560, 650, 80)
-        self.draw_panel(panel_rect, LIGHT_BG, self.message_color)
+        # Pulsing text
+        self.pulse_scale = 1.0 + 0.08 * math.sin(self.animation_timer * 0.15)
+        font_size = int(40 * self.pulse_scale)
+        font = pygame.font.Font(None, font_size)
 
-        # Scale text
-        scaled_font_size = int(36 * self.pulse_scale)
-        scaled_font = pygame.font.Font(None, scaled_font_size)
-
-        self.draw_text_with_shadow(self.message, scaled_font, self.message_color, 825, 600)
+        self.draw_neon_text(self.message, font, self.message_color, 950, 665, 8)
 
     def draw_title(self):
-        """Draw animated title."""
-        # Animated glow
-        glow_intensity = int(100 + 50 * math.sin(self.animation_timer * 0.05))
-        glow_color = (ACCENT_CYAN[0], ACCENT_CYAN[1], glow_intensity)
-
-        self.draw_glowing_text("HANGMAN", self.font_title, WHITE, WIDTH // 2, 70, glow_color)
+        """Draw mega title."""
+        # Rainbow title
+        title_y = 90
+        self.draw_rainbow_text("HANGMAN", self.font_massive, WIDTH // 2, title_y)
 
         # Subtitle
-        self.draw_text_with_shadow("Elite Edition", self.font_tiny, ACCENT_CYAN, WIDTH // 2, 120)
+        subtitle = "// NO CAP EDITION //"
+        self.draw_neon_text(subtitle, self.font_small, NEON_CYAN, WIDTH // 2, 145, 5)
 
     def draw_game_over(self):
-        """Draw game over screen with effects."""
+        """Draw insane game over screen."""
+        # Screen flash
+        if self.screen_flash > 0:
+            flash_surf = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            flash_surf.fill((*WHITE, self.screen_flash))
+            self.screen.blit(flash_surf, (0, 0))
+            self.screen_flash -= 15
+
         # Dark overlay
         overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180))
+        overlay.fill((0, 0, 0, 200))
         self.screen.blit(overlay, (0, 0))
 
-        # Main panel
-        panel_rect = pygame.Rect(250, 200, 700, 400)
-        self.draw_panel(panel_rect, DARK_BG, GOLD if self.won else ACCENT_RED)
+        # Panel
+        panel_rect = pygame.Rect(300, 250, 800, 450)
+        border_color = NEON_GREEN if self.won else NEON_PINK
+        self.draw_neon_panel(panel_rect, border_color)
 
         if self.won:
-            # Victory
-            self.draw_glowing_text("VICTORY!", self.font_title, GOLD, WIDTH // 2, 300, GOLD)
+            # VICTORY
+            emojis = ["🔥", "💯", "✨", "🎉", "🏆", "👑"]
+            victory_text = f"{random.choice(emojis)} SHEEEESH {random.choice(emojis)}"
+            self.draw_rainbow_text(victory_text, self.font_massive, WIDTH // 2, 360)
 
-            # Add score
+            message = f"WORD: {self.word}"
+            self.draw_neon_text(message, self.font_large, NEON_CYAN, WIDTH // 2, 470, 8)
+
             bonus = self.tries * 100
-            self.score += bonus
+            combo_bonus = self.combo * 50
+            total_bonus = bonus + combo_bonus
 
-            message = f"The word was: {self.word}"
-            self.draw_text_with_shadow(message, self.font_medium, ACCENT_CYAN, WIDTH // 2, 400)
+            bonus_text = f"+{total_bonus} POINTS! 💰"
+            self.draw_neon_text(bonus_text, self.font_medium, GOLD, WIDTH // 2, 550, 6)
 
-            bonus_text = f"+{bonus} points!"
-            self.draw_text_with_shadow(bonus_text, self.font_small, GOLD, WIDTH // 2, 460)
+            if self.combo > 0:
+                combo_text = f"COMBO x{self.combo}! 🚀"
+                self.draw_neon_text(combo_text, self.font_small, NEON_ORANGE, WIDTH // 2, 600, 5)
         else:
-            # Defeat
-            self.draw_glowing_text("GAME OVER", self.font_title, ACCENT_RED, WIDTH // 2, 300, ACCENT_RED)
+            # DEFEAT
+            defeat_text = "💀 RIP 💀"
+            self.draw_neon_text(defeat_text, self.font_massive, NEON_PINK, WIDTH // 2, 360, 12)
 
-            message = f"The word was: {self.word}"
-            self.draw_text_with_shadow(message, self.font_medium, ACCENT_CYAN, WIDTH // 2, 400)
+            message = f"WORD WAS: {self.word}"
+            self.draw_neon_text(message, self.font_large, NEON_CYAN, WIDTH // 2, 480, 8)
+
+            oof = "BETTER LUCK NEXT TIME BESTIE 😭"
+            self.draw_neon_text(oof, self.font_small, NEON_PURPLE, WIDTH // 2, 570, 5)
 
         # Instructions
-        self.draw_text_with_shadow("Press SPACE to play again", self.font_small, WHITE, WIDTH // 2, 520)
-        self.draw_text_with_shadow("Press ESC to quit", self.font_tiny, LIGHT_GRAY, WIDTH // 2, 560)
+        space_text = "PRESS SPACE TO RUN IT BACK 🔄"
+        self.draw_neon_text(space_text, self.font_small, WHITE, WIDTH // 2, 640, 4)
 
     def handle_guess(self, letter):
-        """Handle letter guess with visual feedback."""
+        """Handle guess with mega feedback."""
         if self.game_over:
             return
 
@@ -471,73 +666,120 @@ class HangmanGame:
             return
 
         if letter in self.guessed_letters:
-            self.message = "Already guessed that letter!"
-            self.message_color = ACCENT_ORANGE
-            self.shake_intensity = 5
+            self.message = "ALREADY GUESSED THAT BRO! 🙄"
+            self.message_color = NEON_ORANGE
+            self.shake_intensity = 8
             return
 
         self.guessed_letters.add(letter)
 
         if letter in self.word:
-            self.message = "Excellent! Keep going!"
-            self.message_color = ACCENT_GREEN
+            # CORRECT!
+            messages = ["YOOO LETS GO! 🔥", "SHEESH! 💯", "BUSSIN! ✨", "NO CAP! 👑", "FIRE! 🎯"]
+            self.message = random.choice(messages)
+            self.message_color = NEON_GREEN
+            self.combo += 1
 
-            # Create particles at correct letters
             for i, char in enumerate(self.word):
                 if char == letter:
                     self.word_display[i] = letter
                     self.letter_reveal_timers[i] = 0
-                    # Particle effect
-                    x = 500 + (650 // 2) + (i - len(self.word) // 2) * 75
-                    y = 240
-                    self.create_particles(x, y, ACCENT_GREEN, 15)
+
+                    # MEGA particles
+                    x = 550 + (800 // 2) + (i - len(self.word) // 2) * 90
+                    y = 295
+                    for _ in range(3):
+                        color = random.choice([NEON_GREEN, NEON_CYAN, LIME, ELECTRIC_BLUE])
+                        self.create_particles(x, y, color, 25)
+
+                    # Pop text
+                    pop_texts = ["+100", "NICE!", "SLAY!", "YES!"]
+                    self.create_text_pop(random.choice(pop_texts), x, y - 40, NEON_GREEN, 50)
 
             if "_" not in self.word_display:
                 self.game_over = True
                 self.won = True
-                # Victory particles
-                for _ in range(100):
+                self.streak += 1
+                self.best_streak = max(self.best_streak, self.streak)
+                self.total_wins += 1
+
+                # Add score
+                bonus = self.tries * 100 + self.combo * 50
+                self.score += bonus
+
+                # VICTORY EXPLOSION
+                self.screen_flash = 200
+                for _ in range(200):
                     x = random.randint(0, WIDTH)
                     y = random.randint(0, HEIGHT)
-                    color = random.choice([GOLD, ACCENT_CYAN, ACCENT_GREEN, ACCENT_PURPLE])
-                    self.create_particles(x, y, color, 3)
+                    colors = [NEON_PINK, NEON_CYAN, NEON_GREEN, NEON_YELLOW, NEON_PURPLE, GOLD]
+                    self.create_particles(x, y, random.choice(colors), 5)
         else:
-            self.message = "Wrong! Try again!"
-            self.message_color = ACCENT_RED
+            # WRONG!
+            messages = ["NAHH! 😭", "MISSED! 💀", "OOF! ❌", "NOT IT! 😬"]
+            self.message = random.choice(messages)
+            self.message_color = NEON_PINK
             self.tries -= 1
-            self.shake_intensity = 10
+            self.shake_intensity = 15
+            self.combo = 0
 
-            # Red particles
-            self.create_particles(250, 350, ACCENT_RED, 20)
+            # Red explosion
+            for _ in range(5):
+                self.create_particles(250, 400, NEON_PINK, 30)
+
+            self.create_text_pop("MISS!", WIDTH // 2, 400, NEON_PINK, 80)
 
             if self.tries <= 0:
                 self.game_over = True
                 self.won = False
                 self.word_display = list(self.word)
+                self.streak = 0
+
+    def update_background(self):
+        """Update animated background elements."""
+        for star in self.stars:
+            star.update()
+        for shape in self.shapes:
+            shape.update()
+
+    def draw_background(self):
+        """Draw background elements."""
+        for star in self.stars:
+            star.draw(self.screen)
+        for shape in self.shapes:
+            shape.draw(self.screen)
 
     def update_particles(self):
-        """Update and remove dead particles."""
+        """Update particles and text pops."""
         for particle in self.particles[:]:
             particle.update()
             if particle.is_dead():
                 self.particles.remove(particle)
 
+        for text_pop in self.text_pops[:]:
+            text_pop.update()
+            if text_pop.is_dead():
+                self.text_pops.remove(text_pop)
+
     def draw_particles(self):
-        """Draw all active particles."""
+        """Draw all effects."""
         for particle in self.particles:
             particle.draw(self.screen)
+        for text_pop in self.text_pops:
+            text_pop.draw(self.screen)
 
     def draw(self):
         """Main draw function."""
-        self.draw_gradient_background()
+        self.draw_gradient_bg()
+        self.draw_background()
 
         self.draw_title()
+        self.draw_stats_panel()
         self.draw_word()
+        self.draw_lives()
         self.draw_guessed_letters()
-        self.draw_tries()
-        self.draw_score()
-        self.draw_hangman()
         self.draw_message()
+        self.draw_hangman()
 
         self.draw_particles()
 
@@ -546,6 +788,7 @@ class HangmanGame:
 
         pygame.display.flip()
         self.animation_timer += 1
+        self.rainbow_offset += 1
 
     def handle_events(self):
         """Handle events."""
@@ -572,6 +815,7 @@ class HangmanGame:
         while running:
             self.clock.tick(FPS)
             running = self.handle_events()
+            self.update_background()
             self.update_particles()
             self.draw()
 
