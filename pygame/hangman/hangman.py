@@ -21,8 +21,8 @@ LIGHT_BLUE = (173, 216, 230)
 DARK_BLUE = (0, 50, 100)
 
 # Screen settings
-WIDTH = 800
-HEIGHT = 600
+WIDTH = 1000
+HEIGHT = 700
 FPS = 60
 
 # ---------------------------
@@ -54,79 +54,93 @@ class HangmanGame:
 
     def draw_hangman(self):
         """Draw the hangman based on remaining tries."""
-        # Gallows
-        pygame.draw.line(self.screen, DARK_BLUE, (150, 450), (250, 450), 5)  # Base
-        pygame.draw.line(self.screen, DARK_BLUE, (200, 450), (200, 150), 5)  # Vertical pole
-        pygame.draw.line(self.screen, DARK_BLUE, (200, 150), (300, 150), 5)  # Top horizontal
-        pygame.draw.line(self.screen, DARK_BLUE, (300, 150), (300, 200), 5)  # Rope
+        # Gallows - positioned on the left side
+        base_x = 200
+        base_y = 550
+
+        pygame.draw.line(self.screen, DARK_BLUE, (base_x - 50, base_y), (base_x + 50, base_y), 6)  # Base
+        pygame.draw.line(self.screen, DARK_BLUE, (base_x, base_y), (base_x, base_y - 300), 6)  # Vertical pole
+        pygame.draw.line(self.screen, DARK_BLUE, (base_x, base_y - 300), (base_x + 120, base_y - 300), 6)  # Top horizontal
+        pygame.draw.line(self.screen, DARK_BLUE, (base_x + 120, base_y - 300), (base_x + 120, base_y - 250), 6)  # Rope
 
         # Draw body parts based on wrong guesses (6 - tries)
         wrong_guesses = 6 - self.tries
 
+        hang_x = base_x + 120
+        head_y = base_y - 210
+
         if wrong_guesses >= 1:  # Head
-            pygame.draw.circle(self.screen, BLACK, (300, 230), 30, 3)
+            pygame.draw.circle(self.screen, BLACK, (hang_x, head_y), 35, 4)
 
         if wrong_guesses >= 2:  # Body
-            pygame.draw.line(self.screen, BLACK, (300, 260), (300, 350), 3)
+            pygame.draw.line(self.screen, BLACK, (hang_x, head_y + 35), (hang_x, head_y + 120), 4)
 
         if wrong_guesses >= 3:  # Left arm
-            pygame.draw.line(self.screen, BLACK, (300, 280), (260, 320), 3)
+            pygame.draw.line(self.screen, BLACK, (hang_x, head_y + 55), (hang_x - 45, head_y + 95), 4)
 
         if wrong_guesses >= 4:  # Right arm
-            pygame.draw.line(self.screen, BLACK, (300, 280), (340, 320), 3)
+            pygame.draw.line(self.screen, BLACK, (hang_x, head_y + 55), (hang_x + 45, head_y + 95), 4)
 
         if wrong_guesses >= 5:  # Left leg
-            pygame.draw.line(self.screen, BLACK, (300, 350), (270, 410), 3)
+            pygame.draw.line(self.screen, BLACK, (hang_x, head_y + 120), (hang_x - 40, head_y + 180), 4)
 
         if wrong_guesses >= 6:  # Right leg
-            pygame.draw.line(self.screen, BLACK, (300, 350), (330, 410), 3)
+            pygame.draw.line(self.screen, BLACK, (hang_x, head_y + 120), (hang_x + 40, head_y + 180), 4)
 
     def draw_word(self):
         """Draw the word with guessed letters."""
-        word_str = " ".join(self.word_display)
+        # Add extra spacing between letters
+        word_str = "   ".join(self.word_display)
         word_text = self.font_large.render(word_str, True, BLUE)
-        word_rect = word_text.get_rect(center=(WIDTH // 2, 150))
+        word_rect = word_text.get_rect(center=(WIDTH // 2 + 100, 200))
         self.screen.blit(word_text, word_rect)
 
     def draw_guessed_letters(self):
         """Draw the letters that have been guessed."""
         if self.guessed_letters:
-            guessed_str = "Guessed: " + ", ".join(sorted(self.guessed_letters))
+            # Add spacing between guessed letters
+            guessed_str = "Guessed: " + "  ".join(sorted(self.guessed_letters))
         else:
             guessed_str = "Guessed: None"
 
         guessed_text = self.font_small.render(guessed_str, True, GRAY)
-        guessed_rect = guessed_text.get_rect(center=(WIDTH // 2, 250))
+        guessed_rect = guessed_text.get_rect(center=(WIDTH // 2 + 100, 320))
         self.screen.blit(guessed_text, guessed_rect)
 
     def draw_tries(self):
         """Draw remaining tries."""
         tries_str = f"Remaining tries: {self.tries}"
         tries_text = self.font_medium.render(tries_str, True, RED if self.tries <= 2 else BLACK)
-        tries_rect = tries_text.get_rect(center=(WIDTH // 2, 320))
+        tries_rect = tries_text.get_rect(center=(WIDTH // 2 + 100, 420))
         self.screen.blit(tries_text, tries_rect)
 
     def draw_message(self):
         """Draw game message."""
         message_text = self.font_small.render(self.message, True, self.message_color)
-        message_rect = message_text.get_rect(center=(WIDTH // 2, 500))
+        message_rect = message_text.get_rect(center=(WIDTH // 2 + 100, 530))
         self.screen.blit(message_text, message_rect)
 
     def draw_title(self):
         """Draw game title."""
         title_text = self.font_large.render("HANGMAN", True, DARK_BLUE)
-        title_rect = title_text.get_rect(center=(WIDTH // 2, 50))
+        title_rect = title_text.get_rect(center=(WIDTH // 2, 70))
         self.screen.blit(title_text, title_rect)
 
     def draw_restart_prompt(self):
         """Draw restart prompt when game is over."""
         if self.game_over:
             restart_text = self.font_small.render("Press SPACE to play again or ESC to quit", True, BLACK)
-            restart_rect = restart_text.get_rect(center=(WIDTH // 2, 550))
+            restart_rect = restart_text.get_rect(center=(WIDTH // 2, 630))
             self.screen.blit(restart_text, restart_rect)
 
     def draw_game_over(self):
         """Draw game over screen."""
+        # Draw a semi-transparent overlay for game over
+        overlay = pygame.Surface((WIDTH, HEIGHT))
+        overlay.set_alpha(200)
+        overlay.fill(LIGHT_BLUE)
+        self.screen.blit(overlay, (0, 0))
+
         if self.won:
             result_text = self.font_large.render("YOU WON!", True, GREEN)
             word_reveal = self.font_medium.render(f"The word was: {self.word}", True, BLUE)
@@ -134,8 +148,8 @@ class HangmanGame:
             result_text = self.font_large.render("GAME OVER!", True, RED)
             word_reveal = self.font_medium.render(f"The word was: {self.word}", True, BLUE)
 
-        result_rect = result_text.get_rect(center=(WIDTH // 2, 380))
-        word_rect = word_reveal.get_rect(center=(WIDTH // 2, 440))
+        result_rect = result_text.get_rect(center=(WIDTH // 2, 300))
+        word_rect = word_reveal.get_rect(center=(WIDTH // 2, 400))
 
         self.screen.blit(result_text, result_rect)
         self.screen.blit(word_reveal, word_rect)
