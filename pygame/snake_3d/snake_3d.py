@@ -126,8 +126,7 @@ class SnakeGame:
                 model='cube',
                 color=color.green,
                 position=pos,
-                scale=0.9,
-                shader=lit_with_shadows_shader
+                scale=0.9
             )
             self.snake.append(segment)
 
@@ -150,8 +149,7 @@ class SnakeGame:
             model='sphere',
             color=color.red,
             position=food_pos,
-            scale=0.7,
-            shader=lit_with_shadows_shader
+            scale=0.7
         )
 
         # Add visual effect to food
@@ -219,8 +217,7 @@ class SnakeGame:
                 model='cube',
                 color=color.green,
                 position=self.snake[-1].position,
-                scale=0.9,
-                shader=lit_with_shadows_shader
+                scale=0.9
             )
             self.snake.append(new_segment)
 
