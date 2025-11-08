@@ -48,7 +48,7 @@ class SnakeGame:
         # Set background color
         camera.orthographic = False
         camera.fov = 90
-        Sky(color=color.rgb(20, 20, 40))
+        Sky(color=color.azure)
 
         # Position camera for better view
         camera.position = (0, 20, -20)
@@ -57,21 +57,28 @@ class SnakeGame:
         # Create grid floor
         self.create_grid()
 
-        # Add ambient light
-        AmbientLight(color=color.rgba(100, 100, 100, 0.5))
-        DirectionalLight(y=2, z=3, shadows=True, rotation=(45, -45, 45))
+        # Setup proper lighting for Ursina
+        scene.fog_density = 0
+
+        # Add directional light
+        light = DirectionalLight()
+        light.look_at(Vec3(1, -1, 1))
+
+        # Set ambient light value
+        scene.fog_color = color.rgb(100, 100, 120)
 
     def create_grid(self):
         """Create a visual grid for the play area"""
-        grid_color = color.rgb(40, 40, 60)
+        grid_color = color.gray
 
         # Create floor
         floor = Entity(
             model='plane',
             scale=self.grid_size * 2,
-            color=color.rgb(15, 15, 25),
+            color=color.dark_gray,
             position=(0, -0.5, 0),
-            collider='box'
+            collider='box',
+            shader=basic_lighting_shader
         )
 
         # Create grid lines
@@ -81,19 +88,21 @@ class SnakeGame:
                 model='cube',
                 scale=(self.grid_size * 2, 0.05, 0.05),
                 position=(0, -0.45, i),
-                color=grid_color
+                color=grid_color,
+                shader=basic_lighting_shader
             )
             # Lines along Z axis
             Entity(
                 model='cube',
                 scale=(0.05, 0.05, self.grid_size * 2),
                 position=(i, -0.45, 0),
-                color=grid_color
+                color=grid_color,
+                shader=basic_lighting_shader
             )
 
         # Create walls
         wall_height = 3
-        wall_color = color.rgb(30, 30, 50)
+        wall_color = color.violet
 
         # Four walls
         for x, z, sx, sz in [
@@ -107,7 +116,8 @@ class SnakeGame:
                 position=(x, wall_height / 2 - 0.5, z),
                 scale=(sx, wall_height, sz),
                 color=wall_color,
-                collider='box'
+                collider='box',
+                shader=basic_lighting_shader
             )
 
     def create_snake(self):
@@ -118,14 +128,15 @@ class SnakeGame:
         for pos in start_positions:
             segment = Entity(
                 model='cube',
-                color=color.rgb(50, 255, 50),
+                color=color.green,
                 position=pos,
-                scale=0.9
+                scale=0.9,
+                shader=lit_with_shadows_shader
             )
             self.snake.append(segment)
 
         # Make head brighter
-        self.snake[0].color = color.rgb(100, 255, 100)
+        self.snake[0].color = color.lime
 
     def spawn_food(self):
         """Spawn food at a random location"""
@@ -141,9 +152,10 @@ class SnakeGame:
 
         self.food = Entity(
             model='sphere',
-            color=color.rgb(255, 50, 50),
+            color=color.red,
             position=food_pos,
-            scale=0.7
+            scale=0.7,
+            shader=lit_with_shadows_shader
         )
 
         # Add visual effect to food
@@ -209,9 +221,10 @@ class SnakeGame:
             # Add new segment
             new_segment = Entity(
                 model='cube',
-                color=color.rgb(50, 255, 50),
+                color=color.green,
                 position=self.snake[-1].position,
-                scale=0.9
+                scale=0.9,
+                shader=lit_with_shadows_shader
             )
             self.snake.append(new_segment)
 
@@ -222,9 +235,9 @@ class SnakeGame:
         self.snake[0].position = new_head_pos
 
         # Update head color
-        self.snake[0].color = color.rgb(100, 255, 100)
+        self.snake[0].color = color.lime
         if len(self.snake) > 1:
-            self.snake[1].color = color.rgb(50, 255, 50)
+            self.snake[1].color = color.green
 
     def end_game(self):
         """Handle game over"""
@@ -234,7 +247,7 @@ class SnakeGame:
 
         # Make snake red
         for segment in self.snake:
-            segment.color = color.rgb(255, 50, 50)
+            segment.color = color.red
 
     def restart_game(self):
         """Restart the game"""
