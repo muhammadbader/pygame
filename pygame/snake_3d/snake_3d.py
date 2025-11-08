@@ -77,8 +77,7 @@ class SnakeGame:
             scale=self.grid_size * 2,
             color=color.dark_gray,
             position=(0, -0.5, 0),
-            collider='box',
-            shader=basic_lighting_shader
+            collider='box'
         )
 
         # Create grid lines
@@ -88,16 +87,14 @@ class SnakeGame:
                 model='cube',
                 scale=(self.grid_size * 2, 0.05, 0.05),
                 position=(0, -0.45, i),
-                color=grid_color,
-                shader=basic_lighting_shader
+                color=grid_color
             )
             # Lines along Z axis
             Entity(
                 model='cube',
                 scale=(0.05, 0.05, self.grid_size * 2),
                 position=(i, -0.45, 0),
-                color=grid_color,
-                shader=basic_lighting_shader
+                color=grid_color
             )
 
         # Create walls
@@ -116,8 +113,7 @@ class SnakeGame:
                 position=(x, wall_height / 2 - 0.5, z),
                 scale=(sx, wall_height, sz),
                 color=wall_color,
-                collider='box',
-                shader=basic_lighting_shader
+                collider='box'
             )
 
     def create_snake(self):
