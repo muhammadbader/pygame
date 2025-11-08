@@ -143,7 +143,7 @@ class SnakeGame(Ursina):
 
         # Add pulsing animation to food
         self.food.animate_scale(0.9, duration=0.5, curve=curve.in_out_bounce)
-        invoke(lambda: self.food.animate_scale(0.7, duration=0.5, curve=curve.in_out_bounce), delay=0.5)
+        self.food.animate_scale(0.7, duration=0.5, delay=0.5, curve=curve.in_out_bounce, loop=True)
 
     def create_ui(self):
         """Create UI elements"""
