@@ -310,7 +310,11 @@ class TicTacToe:
                     pygame.draw.rect(self.screen, HOVER_COLOR, (x, y, CELL_SIZE, CELL_SIZE))
 
         # Draw grid lines with glow
-        grid_color_pulsed = tuple(int(min(255, c + pulse)) for c in GRID_COLOR[:3])
+        grid_color_pulsed = [
+            int(min(255, max(0, GRID_COLOR[0] + pulse))),
+            int(min(255, max(0, GRID_COLOR[1] + pulse))),
+            int(min(255, max(0, GRID_COLOR[2] + pulse)))
+        ]
 
         for i in range(GRID_SIZE + 1):
             # Vertical lines
