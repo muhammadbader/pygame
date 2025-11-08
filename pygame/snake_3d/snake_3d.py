@@ -48,9 +48,6 @@ class SnakeGame:
         # Set background color to black for better contrast
         window.color = color.rgb(10, 10, 20)
 
-        # Disable default lighting to prevent washout
-        scene.fog_density = 0
-
         # Position camera for better view
         camera.position = (0, 20, -20)
         camera.rotation_x = 45
@@ -67,8 +64,7 @@ class SnakeGame:
             scale=self.grid_size * 2,
             color=color.rgb(30, 30, 50),
             position=(0, -0.5, 0),
-            collider='box',
-            shader=unlit_shader
+            collider='box'
         )
 
         # Create grid lines with bright color
@@ -79,16 +75,14 @@ class SnakeGame:
                 model='cube',
                 scale=(self.grid_size * 2, 0.05, 0.05),
                 position=(0, -0.45, i),
-                color=grid_color,
-                shader=unlit_shader
+                color=grid_color
             )
             # Lines along Z axis
             Entity(
                 model='cube',
                 scale=(0.05, 0.05, self.grid_size * 2),
                 position=(i, -0.45, 0),
-                color=grid_color,
-                shader=unlit_shader
+                color=grid_color
             )
 
         # Create walls with bright color
@@ -107,8 +101,7 @@ class SnakeGame:
                 position=(x, wall_height / 2 - 0.5, z),
                 scale=(sx, wall_height, sz),
                 color=wall_color,
-                collider='box',
-                shader=unlit_shader
+                collider='box'
             )
 
     def create_snake(self):
@@ -121,8 +114,7 @@ class SnakeGame:
                 model='cube',
                 color=color.rgb(50, 200, 50),
                 position=pos,
-                scale=0.9,
-                shader=unlit_shader
+                scale=0.9
             )
             self.snake.append(segment)
 
@@ -145,8 +137,7 @@ class SnakeGame:
             model='sphere',
             color=color.rgb(255, 50, 50),
             position=food_pos,
-            scale=0.7,
-            shader=unlit_shader
+            scale=0.7
         )
 
         # Add visual effect to food
@@ -214,8 +205,7 @@ class SnakeGame:
                 model='cube',
                 color=color.rgb(50, 200, 50),
                 position=self.snake[-1].position,
-                scale=0.9,
-                shader=unlit_shader
+                scale=0.9
             )
             self.snake.append(new_segment)
 
