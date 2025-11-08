@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'game_screen.dart';
+import 'flame_game_screen.dart';
 import 'high_scores_screen.dart';
 import '../utils/storage_service.dart';
 import '../utils/app_theme.dart';
@@ -81,7 +81,7 @@ class _MenuScreenState extends State<MenuScreen>
   void _startGame() {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const GameScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => const FlameGameScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
             opacity: animation,
