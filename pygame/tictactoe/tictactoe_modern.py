@@ -117,8 +117,8 @@ class Particle:
             glow_size = self.size + 4
             glow_surface = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
             glow_alpha = int(alpha // 3)
-            glow_color = (self.color[0], self.color[1], self.color[2], glow_alpha)
-            pygame.draw.circle(glow_surface, glow_color,
+            glow_surface.set_alpha(glow_alpha)
+            pygame.draw.circle(glow_surface, self.color,
                              (glow_size, glow_size), glow_size)
             screen.blit(glow_surface, (int(self.x) - glow_size, int(self.y) - glow_size))
 
@@ -302,8 +302,8 @@ class TicTacToe:
                 if self.hover_cell == (row, col) and self.board[row][col] == '' and not self.game_over:
                     # Outer glow
                     glow_surface = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
-                    glow_color = (O_COLOR[0], O_COLOR[1], O_COLOR[2], 30)
-                    pygame.draw.rect(glow_surface, glow_color, (0, 0, CELL_SIZE, CELL_SIZE))
+                    glow_surface.set_alpha(30)
+                    pygame.draw.rect(glow_surface, O_COLOR, (0, 0, CELL_SIZE, CELL_SIZE))
                     self.screen.blit(glow_surface, (x, y))
                     # Inner highlight
                     pygame.draw.rect(self.screen, HOVER_COLOR, (x, y, CELL_SIZE, CELL_SIZE))
@@ -317,9 +317,9 @@ class TicTacToe:
             # Glow effect
             for offset in range(3):
                 alpha = 100 - offset * 30
-                glow_color = (grid_color_pulsed[0], grid_color_pulsed[1], grid_color_pulsed[2], alpha)
                 glow_surface = pygame.Surface((LINE_WIDTH + offset * 2, CELL_SIZE * GRID_SIZE), pygame.SRCALPHA)
-                pygame.draw.line(glow_surface, glow_color,
+                glow_surface.set_alpha(alpha)
+                pygame.draw.line(glow_surface, grid_color_pulsed,
                                (LINE_WIDTH // 2 + offset, 0),
                                (LINE_WIDTH // 2 + offset, CELL_SIZE * GRID_SIZE),
                                LINE_WIDTH + offset * 2)
@@ -333,9 +333,9 @@ class TicTacToe:
             # Glow effect
             for offset in range(3):
                 alpha = 100 - offset * 30
-                glow_color = (grid_color_pulsed[0], grid_color_pulsed[1], grid_color_pulsed[2], alpha)
                 glow_surface = pygame.Surface((CELL_SIZE * GRID_SIZE, LINE_WIDTH + offset * 2), pygame.SRCALPHA)
-                pygame.draw.line(glow_surface, glow_color,
+                glow_surface.set_alpha(alpha)
+                pygame.draw.line(glow_surface, grid_color_pulsed,
                                (0, LINE_WIDTH // 2 + offset),
                                (CELL_SIZE * GRID_SIZE, LINE_WIDTH // 2 + offset),
                                LINE_WIDTH + offset * 2)
@@ -377,12 +377,12 @@ class TicTacToe:
         for glow_level in range(3):
             glow_width = width + glow_level * 4
             glow_alpha = 80 - glow_level * 25
-            glow_color = (color[0], color[1], color[2], glow_alpha)
             glow_surface = pygame.Surface((int(size * 2 + 40), int(size * 2 + 40)), pygame.SRCALPHA)
+            glow_surface.set_alpha(glow_alpha)
             offset = int(size + 20)
-            pygame.draw.line(glow_surface, glow_color,
+            pygame.draw.line(glow_surface, color,
                            (offset - size, offset - size), (offset + size, offset + size), glow_width)
-            pygame.draw.line(glow_surface, glow_color,
+            pygame.draw.line(glow_surface, color,
                            (offset + size, offset - size), (offset - size, offset + size), glow_width)
             self.screen.blit(glow_surface, (int(x - size - 20), int(y - size - 20)))
 
@@ -400,9 +400,9 @@ class TicTacToe:
         for glow_level in range(3):
             glow_width = width + glow_level * 4
             glow_alpha = 80 - glow_level * 25
-            glow_color = (color[0], color[1], color[2], glow_alpha)
             glow_surface = pygame.Surface((radius * 2 + 40, radius * 2 + 40), pygame.SRCALPHA)
-            pygame.draw.circle(glow_surface, glow_color,
+            glow_surface.set_alpha(glow_alpha)
+            pygame.draw.circle(glow_surface, color,
                              (radius + 20, radius + 20), radius + glow_level * 2, glow_width)
             self.screen.blit(glow_surface, (int(x - radius - 20), int(y - radius - 20)))
 
@@ -448,9 +448,9 @@ class TicTacToe:
             for glow in range(4):
                 glow_width = width + glow * 6
                 glow_alpha = 100 - glow * 25
-                glow_color = (WIN_LINE_COLOR[0], WIN_LINE_COLOR[1], WIN_LINE_COLOR[2], glow_alpha)
                 glow_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-                pygame.draw.line(glow_surface, glow_color,
+                glow_surface.set_alpha(glow_alpha)
+                pygame.draw.line(glow_surface, WIN_LINE_COLOR,
                                (start_x, start_y), (current_end_x, current_end_y), glow_width)
                 self.screen.blit(glow_surface, (0, 0))
 
@@ -471,8 +471,8 @@ class TicTacToe:
         title_rect = title.get_rect(center=(WIDTH // 2, 40))
 
         # Glow effect for title
-        glow_color = (TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2], 100)
-        glow_title = TITLE_FONT.render(title_text, True, glow_color)
+        glow_title = TITLE_FONT.render(title_text, True, TEXT_COLOR)
+        glow_title.set_alpha(100)
         self.screen.blit(glow_title, (title_rect.x + 2, title_rect.y + 2))
         self.screen.blit(title, title_rect)
 
@@ -526,8 +526,8 @@ class TicTacToe:
             # Glow
             for i in range(3):
                 glow_alpha = 50 - i * 15
-                glow_color = (color[0], color[1], color[2], glow_alpha)
-                glow = WINNER_FONT.render(text, True, glow_color)
+                glow = WINNER_FONT.render(text, True, color)
+                glow.set_alpha(glow_alpha)
                 self.screen.blit(glow, (winner_rect.x + i, winner_rect.y + i))
 
             self.screen.blit(winner_surface, winner_rect)
@@ -540,8 +540,8 @@ class TicTacToe:
             # Button glow on hover
             if button_rect.collidepoint(mouse_pos):
                 glow_surf = pygame.Surface((250, 60), pygame.SRCALPHA)
-                glow_color = (O_COLOR[0], O_COLOR[1], O_COLOR[2], 30)
-                pygame.draw.rect(glow_surf, glow_color, (0, 0, 250, 60), border_radius=12)
+                glow_surf.set_alpha(30)
+                pygame.draw.rect(glow_surf, O_COLOR, (0, 0, 250, 60), border_radius=12)
                 self.screen.blit(glow_surf, (WIDTH // 2 - 125, HEIGHT // 2 + 15))
 
             pygame.draw.rect(self.screen, button_color, button_rect, border_radius=10)
