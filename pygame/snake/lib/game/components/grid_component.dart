@@ -100,10 +100,10 @@ class GridComponent extends Component with HasGameRef {
     }
 
     // Draw corner ornaments
-    _drawCornerOrnaments(canvas, size, cellSize);
+    _drawCornerOrnaments(canvas, size.x, size.y, cellSize);
   }
 
-  void _drawCornerOrnaments(Canvas canvas, Vector2 size, double cellSize) {
+  void _drawCornerOrnaments(Canvas canvas, double width, double height, double cellSize) {
     final ornamentPaint = Paint()
       ..color = theme.gridColor.withOpacity(0.5)
       ..strokeWidth = 2.0
@@ -114,11 +114,11 @@ class GridComponent extends Component with HasGameRef {
     // Draw ornaments at each corner
     _drawOrnament(canvas, Offset(0, 0), ornamentSize, ornamentPaint, true, true);
     _drawOrnament(
-        canvas, Offset(size.x, 0), ornamentSize, ornamentPaint, false, true);
+        canvas, Offset(width, 0), ornamentSize, ornamentPaint, false, true);
     _drawOrnament(
-        canvas, Offset(0, size.y), ornamentSize, ornamentPaint, true, false);
+        canvas, Offset(0, height), ornamentSize, ornamentPaint, true, false);
     _drawOrnament(
-        canvas, Offset(size.x, size.y), ornamentSize, ornamentPaint, false, false);
+        canvas, Offset(width, height), ornamentSize, ornamentPaint, false, false);
   }
 
   void _drawOrnament(

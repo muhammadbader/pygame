@@ -33,7 +33,7 @@ class BackgroundComponent extends Component with HasGameRef {
     _drawAtmosphericEffects(canvas, size);
   }
 
-  void _drawDynamicBackground(Canvas canvas, Size size) {
+  void _drawDynamicBackground(Canvas canvas, Vector2 size) {
     final gradientShift = sin(time * 0.5) * 0.1;
 
     final backgroundPaint = Paint()
@@ -41,15 +41,15 @@ class BackgroundComponent extends Component with HasGameRef {
         begin: Alignment(0, -1.0 + gradientShift),
         end: Alignment(0, 1.0 - gradientShift),
         colors: [theme.backgroundColor1, theme.backgroundColor2],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+      ).createShader(Rect.fromLTWH(0, 0, size.x, size.y));
 
     canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
+      Rect.fromLTWH(0, 0, size.x, size.y),
       backgroundPaint,
     );
   }
 
-  void _drawAtmosphericEffects(Canvas canvas, Size size) {
+  void _drawAtmosphericEffects(Canvas canvas, Vector2 size) {
     // Draw twinkling stars
     final starPaint = Paint()
       ..color = theme.starColor
@@ -57,8 +57,8 @@ class BackgroundComponent extends Component with HasGameRef {
 
     final random = Random(42);
     for (int i = 0; i < 80; i++) {
-      final x = random.nextDouble() * size.width;
-      final y = random.nextDouble() * size.height;
+      final x = random.nextDouble() * size.x;
+      final y = random.nextDouble() * size.y;
       final twinkle = sin(time * 2 + i * 0.5) * 0.5 + 0.5;
       final starSize = random.nextDouble() * 1.5 + 0.5;
 
@@ -86,8 +86,8 @@ class BackgroundComponent extends Component with HasGameRef {
     }
 
     // Draw crescent moon
-    final cellSize = size.width / 15;
-    final moonCenter = Offset(size.width * 0.85, size.height * 0.15);
+    final cellSize = size.x / 15;
+    final moonCenter = Offset(size.x * 0.85, size.y * 0.15);
     final moonRadius = cellSize * 1.2;
 
     // Moon glow
@@ -118,12 +118,12 @@ class BackgroundComponent extends Component with HasGameRef {
     // Floating dust particles
     final dustRandom = Random(123);
     for (int i = 0; i < 40; i++) {
-      final baseX = dustRandom.nextDouble() * size.width;
-      final baseY = dustRandom.nextDouble() * size.height;
+      final baseX = dustRandom.nextDouble() * size.x;
+      final baseY = dustRandom.nextDouble() * size.y;
 
       final floatOffset = sin(time * 0.5 + i * 0.3) * 10;
       final x = baseX + floatOffset;
-      final y = baseY + (time * 20 + i * 3) % size.height;
+      final y = baseY + (time * 20 + i * 3) % size.y;
 
       final dustPaint = Paint()
         ..color = theme.gridColor.withOpacity(0.05 + sin(time + i) * 0.05);
