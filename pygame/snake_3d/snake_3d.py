@@ -7,9 +7,10 @@ from ursina import *
 from random import randint
 
 
-class SnakeGame(Ursina):
+class SnakeGame:
     def __init__(self):
-        super().__init__()
+        # Initialize Ursina app
+        self.app = Ursina()
 
         # Game settings
         self.grid_size = 15
@@ -31,6 +32,10 @@ class SnakeGame(Ursina):
         self.create_snake()
         self.spawn_food()
         self.create_ui()
+
+        # Register update and input handlers
+        self.app.update = self.update
+        self.app.input = self.input
 
     def setup_scene(self):
         """Setup the 3D scene, camera, and lighting"""
@@ -290,6 +295,10 @@ class SnakeGame(Ursina):
             self.next_direction = Vec3(-1, 0, 0)
         elif key in ('d', 'right arrow') and self.direction != Vec3(-1, 0, 0):
             self.next_direction = Vec3(1, 0, 0)
+
+    def run(self):
+        """Run the game"""
+        self.app.run()
 
 
 def main():
